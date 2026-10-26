@@ -1,6 +1,20 @@
+-- +goose Up
 CREATE TYPE "role" AS ENUM ('ADMIN', 'USER');
 
-CREATE TYPE "gender" AS ENUM ('Male', 'Female');
+CREATE TYPE "gender" AS ENUM ('MALE', 'FEMALE');
+
+CREATE TABLE
+    IF NOT EXISTS pet_types (
+        id SERIAL PRIMARY KEY,
+        value VARCHAR(50) UNIQUE NOT NULL
+    );
+
+CREATE TABLE
+    IF NOT EXISTS breeds (
+        id SERIAL PRIMARY KEY,
+        value VARCHAR(50) UNIQUE NOT NULL,
+        pet_type_id INT REFERENCES pet_types (id) ON DELETE CASCADE
+    );
 
 CREATE TABLE
     IF NOT EXISTS users (
@@ -22,7 +36,7 @@ CREATE TABLE
         about TEXT,
         gender gender,
         birthday DATE,
-        microchip_id string,
+        microchip_id VARCHAR(255),
         pet_type_id INT NOT NULL REFERENCES pet_types (id),
         breed_id INT REFERENCES breeds (id),
         lost bool DEFAULT false,
@@ -30,17 +44,17 @@ CREATE TABLE
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-CREATE TABLE
-    IF NOT EXISTS pet_types (
-        id SERIAL PRIMARY KEY,
-        value VARCHAR(50) UNIQUE NOT NULL
-    );
-
-CREATE TABLE
-    IF NOT EXISTS breeds (
-        id SERIAL PRIMARY KEY,
-        value VARCHAR(50) UNIQUE NOT NULL,
-        pet_type_id INT REFERENCES pet_types (id) ON DELETE CASCADE
-    );
-
 CREATE INDEX idx_user_email ON users (email);
+
+-- +goose Down
+DROP TABLE users;
+
+DROP TABLE pets;
+
+DROP TABLE pet_types;
+
+DROP TABLE breeds;
+
+DROP TYPE IF EXISTS "role";
+
+DROP TYPE IF EXISTS "gender";
