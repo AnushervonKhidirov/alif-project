@@ -47,8 +47,8 @@ Enum role {
 }
 
 Enum gender {
-	Male
-	Female
+	MALE
+	FEMALE
 }
 
 
