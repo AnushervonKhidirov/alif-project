@@ -27,6 +27,7 @@ func (r *Route) Init() {
 	{
 		v1 := group.Group("v1")
 
+		// Initializing routes
 		r.auth.Init(v1)
 	}
 }
