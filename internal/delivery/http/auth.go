@@ -7,16 +7,20 @@ import (
 )
 
 type AuthRoute struct {
-	h *handler.Auth
+	h handler.AuthHandler
 }
 
-func NewAuth(handler *handler.Auth) *AuthRoute {
+func NewAuth(handler handler.AuthHandler) *AuthRoute {
 	return &AuthRoute{h: handler}
 }
 
 func (r *AuthRoute) Init(g *gin.RouterGroup) {
-	g.POST("sign-up", r.h.SignUp)
-	g.POST("sign-in", r.h.SignIn)
-	g.POST("sign-out", r.h.SignOut)
-	g.POST("refresh-token", r.h.RefreshToken)
+	group := g.Group("/auth")
+
+	{
+		group.POST("/sign-up", r.h.SignUp)
+		group.POST("/sign-in", r.h.SignIn)
+		group.POST("/sign-out", r.h.SignOut)
+		group.POST("/refresh-token", r.h.RefreshToken)
+	}
 }

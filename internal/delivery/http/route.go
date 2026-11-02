@@ -22,10 +22,10 @@ func New(handler *handler.Handler) *Route {
 }
 
 func (r *Route) Init() {
-	group := r.Engine.Group("api")
+	group := r.Engine.Group("/api")
 
 	{
-		v1 := group.Group("v1")
+		v1 := group.Group("/v1")
 
 		// Initializing routes
 		r.auth.Init(v1)
