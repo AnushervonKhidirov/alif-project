@@ -7,7 +7,7 @@ import (
 )
 
 type Service struct {
-	Auth      AuthService
+	Token     TokenService
 	User      UserService
 	Pet       PetService
 	PetType   PetTypeService
@@ -20,11 +20,11 @@ func New() *Service {
 }
 
 // Auth
-type AuthService interface {
-	SignUp() (*dto.TokenResponse, error)
-	SignIn() (*dto.TokenResponse, error)
-	RefreshToken() (*dto.TokenResponse, error)
-	SignOut() error
+type TokenService interface {
+	GenerateAccess(id int, role model.Role) (string, error)
+	VerifyAccess(tokenString string) (*TokenClaims, error)
+	GenerateRefresh(ctx *context.Context, id int, role model.Role) (string, error)
+	VerifyRefresh(ctx *context.Context, tokenString string) (*TokenClaims, error)
 }
 
 // User
