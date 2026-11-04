@@ -5,18 +5,23 @@ import (
 	"pet/internal/config"
 	route "pet/internal/delivery/http"
 	"pet/internal/handler"
+	"pet/internal/repository/redisstore"
+	"pet/internal/service"
 )
 
 func main() {
-	conf, err := config.InitConfig()
+	cfg, err := config.InitConfig()
 
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	fmt.Println(conf)
+	fmt.Println(cfg)
 
-	h := handler.New()
+	rdb := redisstore.New(&cfg.Redis)
+
+	s := service.New(cfg, rdb.Client)
+	h := handler.New(s)
 
 	r := route.New(h)
 	r.Init()
