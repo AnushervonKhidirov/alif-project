@@ -2,25 +2,32 @@ package service
 
 import (
 	"context"
+	"pet/internal/config"
 	"pet/internal/dto"
 	"pet/internal/model"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type Service struct {
-	Token     TokenService
 	User      UserService
+	Token     TokenService
 	Pet       PetService
 	PetType   PetTypeService
 	Breed     BreedService
 	VetClinic VetClinicService
 }
 
-func New() *Service {
-	return &Service{}
+func New(cfg *config.AppConf, redisClient *redis.Client) *Service {
+	return &Service{
+		User:  NewUserService(),
+		Token: NewTokenService(&cfg.Token, redisClient),
+	}
 }
 
 // Auth
 type TokenService interface {
+	GeneratePair(ctx *context.Context, id int, role model.Role) (*model.TokenPair, error)
 	GenerateAccess(id int, role model.Role) (string, error)
 	VerifyAccess(tokenString string) (*TokenClaims, error)
 	GenerateRefresh(ctx *context.Context, id int, role model.Role) (string, error)
