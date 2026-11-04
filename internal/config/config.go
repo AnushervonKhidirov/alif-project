@@ -11,6 +11,7 @@ type AppConf struct {
 	Env        string     `env:"APP_ENV" env-default:"dev"`
 	HttpServer HttpServer `env-required:"true"`
 	Database   Database   `env-required:"true"`
+	Redis      Redis      `env-required:"true"`
 	Token      Token      `env-required:"true"`
 }
 
@@ -23,10 +24,16 @@ type HttpServer struct {
 
 type Database struct {
 	Host     string `env:"DB_HOST" env-default:"localhost"`
-	Port     int    `env:"DB_PORT" env-default:"5432"`
+	Port     string `env:"DB_PORT" env-default:"5432"`
 	User     string `env:"DB_USER" env-default:"postgres"`
 	Password string `env:"DB_PASSWORD" env-required:"true"`
 	DBName   string `env:"DB_NAME" env-required:"true"`
+}
+
+type Redis struct {
+	Host     string `env:"REDIS_HOST" env-default:"redis"`
+	Port     string `env:"REDIS_PORT" env-default:"6379"`
+	Password string `env:"REDIS_PASSWORD" env-required:"true"`
 }
 
 type Token struct {
