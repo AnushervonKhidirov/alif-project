@@ -11,23 +11,42 @@ import (
 )
 
 type authHandler struct {
-	userService  *service.UserService
-	tokenService *service.TokenService
+	userService  service.UserService
+	tokenService service.TokenService
 }
 
-func NewAuth() AuthHandler {
-	return &authHandler{}
+func NewAuth(s *service.Service) AuthHandler {
+	return &authHandler{
+		userService:  s.User,
+		tokenService: s.Token,
+	}
 }
 
 func (h *authHandler) SignUp(c *gin.Context) {
-	var data dto.SignUpRequest
+	var data dto.CreateUser
+	ctx := c.Request.Context()
 
 	err := c.ShouldBindJSON(&data)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
+		return
 	}
 
-	fmt.Printf("%#v", data)
+	u, err := h.userService.Create(&ctx, &data)
+	if err != nil {
+		// TODO: handler several error types
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
+	tokenPair, err := h.tokenService.GeneratePair(&ctx, u.Id, u.Role)
+	if err != nil {
+		// TODO: handler several error types
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
+	response.OK(c, http.StatusCreated, dto.TokenResponse(*tokenPair))
 }
 
 func (h *authHandler) SignIn(c *gin.Context) {

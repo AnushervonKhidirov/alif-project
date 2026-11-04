@@ -1,14 +1,18 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"pet/internal/service"
+
+	"github.com/gin-gonic/gin"
+)
 
 type Handler struct {
 	Auth AuthHandler
 }
 
-func New() *Handler {
+func New(s *service.Service) *Handler {
 	return &Handler{
-		Auth: NewAuth(),
+		Auth: NewAuth(s),
 	}
 }
 
