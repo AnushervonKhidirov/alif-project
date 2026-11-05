@@ -3,8 +3,8 @@ package user
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"pet/internal/model"
-	"strconv"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -42,33 +42,11 @@ func NewUserRepository(c *pgx.Conn) *UserRepository {
 func (c UserRepository) GetOne(ctx context.Context, filters UserFilter) (*model.User, error) {
 	var user model.User
 
-	cond := "1=1"
-	namedArgs := make(map[string]string)
-
-	if filters.Id != nil {
-		namedArgs["id"] = strconv.Itoa(*filters.Id)
-		cond += " AND id = @id"
-	}
-
-	if filters.Email != nil {
-		namedArgs["email"] = *filters.Email
-		cond += " AND email = @email"
-	}
-
-	if filters.FirstName != nil {
-		namedArgs["first_name"] = *filters.FirstName
-		cond += " AND first_name = @first_name"
-	}
-
-	if filters.LastName != nil {
-		namedArgs["last_name"] = *filters.LastName
-		cond += " AND last_name = @last_name"
-	}
-
+	cond, namedArgs := buildUserConditions(filters)
 	sqlStr := `
 		SELECT id, email, first_name, last_name, role, created_at, updated_at FROM users
 		WHERE
-	` + cond + " LIMIT 1;"
+	` + cond + " ORDER BY id ASC LIMIT 1;"
 
 	err := c.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
 		&user.Id,
@@ -88,45 +66,33 @@ func (c UserRepository) GetOne(ctx context.Context, filters UserFilter) (*model.
 }
 
 func (c UserRepository) GetMany(ctx context.Context, filters UserFilter) ([]model.User, error) {
+	if filters.Limit != nil && *filters.Limit < 0 {
+		return nil, fmt.Errorf("user query limit must not be negative: %d", *filters.Limit)
+	}
+	if filters.Offset != nil && *filters.Offset < 0 {
+		return nil, fmt.Errorf("user query offset must not be negative: %d", *filters.Offset)
+	}
+
 	users := make([]model.User, 0)
 
-	cond := "1=1"
-	namedArgs := make(map[string]string)
-
-	if filters.Id != nil {
-		namedArgs["id"] = strconv.Itoa(*filters.Id)
-		cond += " AND id = @id"
-	}
-
-	if filters.Email != nil {
-		namedArgs["email"] = *filters.Email
-		cond += " AND email = @email"
-	}
-
-	if filters.FirstName != nil {
-		namedArgs["first_name"] = *filters.FirstName
-		cond += " AND first_name = @first_name"
-	}
-
-	if filters.LastName != nil {
-		namedArgs["last_name"] = *filters.LastName
-		cond += " AND last_name = @last_name"
-	}
-
-	if filters.Offset != nil {
-		namedArgs["offset"] = strconv.Itoa(*filters.Offset)
-		cond += " OFFSET = @offset"
-	}
-
-	if filters.Limit != nil {
-		namedArgs["limit"] = strconv.Itoa(*filters.Limit)
-		cond += " LIMIT = @limit"
-	}
+	cond, namedArgs := buildUserConditions(filters)
 
 	sqlStr := `
 		SELECT id, email, first_name, last_name, role, created_at, updated_at FROM users
 		WHERE
-	` + cond + ";"
+	` + cond + " ORDER BY id ASC"
+
+	if filters.Limit != nil {
+		namedArgs["limit"] = *filters.Limit
+		sqlStr += " LIMIT @limit"
+	}
+
+	if filters.Offset != nil {
+		namedArgs["offset"] = *filters.Offset
+		sqlStr += " OFFSET @offset"
+	}
+
+	sqlStr += ";"
 
 	rows, err := c.conn.Query(ctx, sqlStr, namedArgs)
 	if err != nil {
@@ -216,4 +182,32 @@ func (c UserRepository) Delete(ctx context.Context, userId int) error {
 	sqlStr := "DELETE FROM users WHERE id = $1;"
 	_, err := c.conn.Exec(ctx, sqlStr, userId)
 	return err
+}
+
+// helpers
+func buildUserConditions(filters UserFilter) (string, pgx.NamedArgs) {
+	cond := "TRUE"
+	namedArgs := make(pgx.NamedArgs)
+
+	if filters.Id != nil {
+		namedArgs["id"] = *filters.Id
+		cond += " AND id = @id"
+	}
+
+	if filters.Email != nil {
+		namedArgs["email"] = *filters.Email
+		cond += " AND email = @email"
+	}
+
+	if filters.FirstName != nil {
+		namedArgs["first_name"] = *filters.FirstName
+		cond += " AND first_name = @first_name"
+	}
+
+	if filters.LastName != nil {
+		namedArgs["last_name"] = *filters.LastName
+		cond += " AND last_name = @last_name"
+	}
+
+	return cond, namedArgs
 }
