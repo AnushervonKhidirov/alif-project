@@ -8,7 +8,7 @@ type CreateUser struct {
 }
 
 type UpdateUser struct {
-	FirstName string
+	FirstName *string
 	LastName  *string
 }
 
