@@ -10,8 +10,8 @@ import (
 )
 
 type Database struct {
-	cfg  *config.Database
-	User UserConn
+	cfg            *config.Database
+	UserRepository UserRepo
 }
 
 func NewDatabase(cfg *config.Database) *Database {
@@ -27,12 +27,12 @@ func (db Database) Connect() (*pgx.Conn, error) {
 		return nil, err
 	}
 
-	db.User = user.NewUserRepository(conn)
+	db.UserRepository = user.NewUserRepository(conn)
 
 	return conn, nil
 }
 
-type UserConn interface {
+type UserRepo interface {
 	GetOne(ctx context.Context, filters user.UserFilter) (*model.User, error)
 	GetMany(ctx context.Context, filters user.UserFilter) ([]model.User, error)
 	Create(ctx context.Context, userArgs user.CreateUserArgs) (*model.User, error)
