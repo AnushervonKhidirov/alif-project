@@ -1,6 +1,9 @@
 package optional
 
-import "encoding/json"
+import (
+	"bytes"
+	"encoding/json"
+)
 
 type String struct {
 	Value *string
@@ -8,10 +11,9 @@ type String struct {
 }
 
 func (o *String) UnmarshalJSON(data []byte) error {
-	o.IsSet = true
-
-	if string(data) == "null" {
+	if bytes.Equal(bytes.TrimSpace(data), []byte("null")) {
 		o.Value = nil
+		o.IsSet = true
 		return nil
 	}
 
@@ -20,5 +22,6 @@ func (o *String) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	o.Value = &s
+	o.IsSet = true
 	return nil
 }
