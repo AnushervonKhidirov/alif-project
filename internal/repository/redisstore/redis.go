@@ -3,14 +3,15 @@ package redisstore
 import (
 	"context"
 	"pet/internal/config"
+	"pet/internal/repository/redisstore/token"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
 type RedisDB struct {
-	Client     *redis.Client
-	TokenStore TokenStore
+	Client *redis.Client
+	Token  TokenStore
 }
 
 func New(cfg *config.Redis) *RedisDB {
@@ -21,8 +22,8 @@ func New(cfg *config.Redis) *RedisDB {
 	})
 
 	return &RedisDB{
-		Client:     rdb,
-		TokenStore: NewTokenStore(rdb),
+		Client: rdb,
+		Token:  token.NewStore(rdb),
 	}
 }
 

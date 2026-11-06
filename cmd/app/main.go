@@ -19,11 +19,12 @@ func main() {
 	fmt.Println(cfg)
 
 	rdb := redisstore.New(&cfg.Redis)
+	defer rdb.Client.Close()
 
 	s := service.New(cfg, rdb.Client)
 	h := handler.New(s)
 
 	r := route.New(h)
 	r.Init()
-	r.Engine.Run(":8080")
+	r.Engine.Run(":" + cfg.HttpServer.Port)
 }

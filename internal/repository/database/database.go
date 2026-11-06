@@ -27,7 +27,7 @@ func (db Database) Connect() (*pgx.Conn, error) {
 		return nil, err
 	}
 
-	db.UserRepository = user.NewUserRepository(conn)
+	db.UserRepository = user.NewRepository(conn)
 
 	return conn, nil
 }
