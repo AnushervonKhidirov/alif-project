@@ -167,7 +167,11 @@ func (c UserRepository) Update(ctx context.Context, userId int, userArgs UpdateU
 	namedArgs := make(pgx.NamedArgs)
 	namedArgs["id"] = userId
 
-	if userArgs.FirstName.IsSet && userArgs.FirstName.Value != nil {
+	if userArgs.FirstName.IsSet {
+		if userArgs.FirstName.Value == nil {
+			return nil, errors.New("first name must not be null")
+		}
+
 		setFields = append(setFields, "first_name = @firstName")
 		namedArgs["firstName"] = userArgs.FirstName.Value
 	}
@@ -181,8 +185,10 @@ func (c UserRepository) Update(ctx context.Context, userId int, userArgs UpdateU
 	_, isLastOk := namedArgs["lastName"]
 
 	if !isFirstOk && !isLastOk {
-		return nil, errors.New("Nothing to updated")
+		return nil, errors.New("no user fields to update")
 	}
+
+	setFields = append(setFields, "updated_at = CURRENT_TIMESTAMP")
 
 	sqlStr := "UPDATE users SET " + strings.Join(setFields, ", ") + `
 		WHERE id = @id
