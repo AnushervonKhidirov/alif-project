@@ -5,7 +5,7 @@ import (
 	"pet/internal/config"
 	route "pet/internal/delivery/http"
 	"pet/internal/handler"
-	"pet/internal/repository/redisstore"
+	"pet/internal/repository/cache"
 	"pet/internal/service"
 )
 
@@ -18,10 +18,10 @@ func main() {
 
 	fmt.Println(cfg)
 
-	rdb := redisstore.New(&cfg.Redis)
-	defer rdb.Client.Close()
+	cache := cache.New(&cfg.Redis)
+	defer cache.Client.Close()
 
-	s := service.New(cfg, rdb.Client)
+	s := service.New(cfg, cache)
 	h := handler.New(s)
 
 	r := route.New(h)

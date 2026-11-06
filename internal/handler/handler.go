@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"pet/internal/handler/auth"
 	"pet/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ type Handler struct {
 
 func New(s *service.Service) *Handler {
 	return &Handler{
-		Auth: NewAuth(s),
+		Auth: auth.NewHandler(s),
 	}
 }
 

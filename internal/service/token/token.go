@@ -1,29 +1,28 @@
-package service
+package token
 
 import (
 	"context"
 	"errors"
 	"pet/internal/config"
 	"pet/internal/model"
-	"pet/internal/repository/redisstore"
+	"pet/internal/repository/cache"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/redis/go-redis/v9"
 )
 
 const InvalidTokenError string = "invalid token"
 
-type TokenClaims struct {
+type Claims struct {
 	UserId   int
 	UserRole model.Role
 	jwt.RegisteredClaims
 }
 
-func NewTokenClaims(id int, role model.Role, Expiration time.Duration) TokenClaims {
+func NewClaims(id int, role model.Role, Expiration time.Duration) Claims {
 	now := time.Now()
 
-	return TokenClaims{
+	return Claims{
 		UserId:   id,
 		UserRole: role,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -33,16 +32,17 @@ func NewTokenClaims(id int, role model.Role, Expiration time.Duration) TokenClai
 	}
 }
 
-type tokenService struct {
-	redisClient       redisstore.TokenStore
+type TokenService struct {
+	redisClient       cache.Token
 	accessSecretKey   []byte
 	refreshSecretKey  []byte
 	accessExpiration  time.Duration
 	refreshExpiration time.Duration
 }
 
-func NewTokenService(cfg *config.Token, redisClient *redis.Client) TokenService {
-	return &tokenService{
+func NewService(cfg *config.Token, redisClient cache.Token) *TokenService {
+	return &TokenService{
+		redisClient:       redisClient,
 		accessSecretKey:   []byte(cfg.AccessSecretKey),
 		refreshSecretKey:  []byte(cfg.RefreshSecretKey),
 		accessExpiration:  cfg.AccessExpiration,
@@ -50,7 +50,7 @@ func NewTokenService(cfg *config.Token, redisClient *redis.Client) TokenService 
 	}
 }
 
-func (s tokenService) GeneratePair(ctx *context.Context, id int, role model.Role) (*model.TokenPair, error) {
+func (s TokenService) GeneratePair(ctx *context.Context, id int, role model.Role) (*model.TokenPair, error) {
 	accessToken, err := s.GenerateAccess(id, role)
 	if err != nil {
 		return nil, err
@@ -69,8 +69,8 @@ func (s tokenService) GeneratePair(ctx *context.Context, id int, role model.Role
 	return tokenPair, nil
 }
 
-func (s tokenService) GenerateAccess(id int, role model.Role) (string, error) {
-	claims := NewTokenClaims(id, role, s.accessExpiration)
+func (s TokenService) GenerateAccess(id int, role model.Role) (string, error) {
+	claims := NewClaims(id, role, s.accessExpiration)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	tokenString, err := token.SignedString(s.accessSecretKey)
@@ -81,7 +81,7 @@ func (s tokenService) GenerateAccess(id int, role model.Role) (string, error) {
 	return tokenString, nil
 }
 
-func (s tokenService) VerifyAccess(tokenString string) (*TokenClaims, error) {
+func (s TokenService) VerifyAccess(tokenString string) (*Claims, error) {
 	claims, err := s.parseToken(tokenString, s.accessKeyFunc)
 	if err != nil {
 		return nil, err
@@ -90,8 +90,8 @@ func (s tokenService) VerifyAccess(tokenString string) (*TokenClaims, error) {
 	return claims, nil
 }
 
-func (s tokenService) GenerateRefresh(ctx *context.Context, id int, role model.Role) (string, error) {
-	claims := NewTokenClaims(id, role, s.refreshExpiration)
+func (s TokenService) GenerateRefresh(ctx *context.Context, id int, role model.Role) (string, error) {
+	claims := NewClaims(id, role, s.refreshExpiration)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	tokenString, err := token.SignedString(s.refreshSecretKey)
@@ -107,7 +107,7 @@ func (s tokenService) GenerateRefresh(ctx *context.Context, id int, role model.R
 	return tokenString, nil
 }
 
-func (s tokenService) VerifyRefresh(ctx *context.Context, tokenString string) (*TokenClaims, error) {
+func (s TokenService) VerifyRefresh(ctx *context.Context, tokenString string) (*Claims, error) {
 	claims, err := s.parseToken(tokenString, s.refreshKeyFunc)
 	if err != nil {
 		return nil, err
@@ -122,27 +122,27 @@ func (s tokenService) VerifyRefresh(ctx *context.Context, tokenString string) (*
 }
 
 // helpers
-func (tokenService) parseToken(tokenString string, keyFunc jwt.Keyfunc) (*TokenClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &TokenClaims{}, keyFunc)
+func (TokenService) parseToken(tokenString string, keyFunc jwt.Keyfunc) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, keyFunc)
 	if err != nil {
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(*TokenClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		return claims, nil
 	}
 
 	return nil, errors.New(InvalidTokenError)
 }
 
-func (s tokenService) accessKeyFunc(token *jwt.Token) (any, error) {
+func (s TokenService) accessKeyFunc(token *jwt.Token) (any, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 		return nil, errors.New(InvalidTokenError)
 	}
 	return s.accessSecretKey, nil
 }
 
-func (s tokenService) refreshKeyFunc(token *jwt.Token) (any, error) {
+func (s TokenService) refreshKeyFunc(token *jwt.Token) (any, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 		return nil, errors.New(InvalidTokenError)
 	}

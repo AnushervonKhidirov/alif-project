@@ -5,8 +5,9 @@ import (
 	"pet/internal/config"
 	"pet/internal/dto"
 	"pet/internal/model"
-
-	"github.com/redis/go-redis/v9"
+	"pet/internal/repository/cache"
+	"pet/internal/service/token"
+	"pet/internal/service/user"
 )
 
 type Service struct {
@@ -18,10 +19,10 @@ type Service struct {
 	VetClinic VetClinicService
 }
 
-func New(cfg *config.AppConf, redisClient *redis.Client) *Service {
+func New(cfg *config.AppConf, cache *cache.Cache) *Service {
 	return &Service{
-		User:  NewUserService(),
-		Token: NewTokenService(&cfg.Token, redisClient),
+		User:  user.NewService(),
+		Token: token.NewService(&cfg.Token, cache.Token),
 	}
 }
 
@@ -29,9 +30,9 @@ func New(cfg *config.AppConf, redisClient *redis.Client) *Service {
 type TokenService interface {
 	GeneratePair(ctx *context.Context, id int, role model.Role) (*model.TokenPair, error)
 	GenerateAccess(id int, role model.Role) (string, error)
-	VerifyAccess(tokenString string) (*TokenClaims, error)
+	VerifyAccess(tokenString string) (*token.Claims, error)
 	GenerateRefresh(ctx *context.Context, id int, role model.Role) (string, error)
-	VerifyRefresh(ctx *context.Context, tokenString string) (*TokenClaims, error)
+	VerifyRefresh(ctx *context.Context, tokenString string) (*token.Claims, error)
 }
 
 // User

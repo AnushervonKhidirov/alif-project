@@ -1,4 +1,4 @@
-package handler
+package auth
 
 import (
 	"fmt"
@@ -10,19 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type authHandler struct {
+type AuthHandler struct {
 	userService  service.UserService
 	tokenService service.TokenService
 }
 
-func NewAuth(s *service.Service) AuthHandler {
-	return &authHandler{
+func NewHandler(s *service.Service) *AuthHandler {
+	return &AuthHandler{
 		userService:  s.User,
 		tokenService: s.Token,
 	}
 }
 
-func (h *authHandler) SignUp(c *gin.Context) {
+func (h AuthHandler) SignUp(c *gin.Context) {
 	var data dto.CreateUser
 	ctx := c.Request.Context()
 
@@ -49,7 +49,7 @@ func (h *authHandler) SignUp(c *gin.Context) {
 	response.OK(c, http.StatusCreated, dto.TokenResponse(*tokenPair))
 }
 
-func (h *authHandler) SignIn(c *gin.Context) {
+func (h AuthHandler) SignIn(c *gin.Context) {
 	var data dto.SignInRequest
 
 	err := c.ShouldBindJSON(&data)
@@ -61,7 +61,7 @@ func (h *authHandler) SignIn(c *gin.Context) {
 	fmt.Printf("%#v", data)
 }
 
-func (h *authHandler) SignOut(c *gin.Context) {
+func (h AuthHandler) SignOut(c *gin.Context) {
 	var data dto.RefreshTokenRequest
 
 	err := c.ShouldBindJSON(&data)
@@ -73,7 +73,7 @@ func (h *authHandler) SignOut(c *gin.Context) {
 	fmt.Printf("%#v", data)
 }
 
-func (h *authHandler) RefreshToken(c *gin.Context) {
+func (h AuthHandler) RefreshToken(c *gin.Context) {
 	var data dto.RefreshTokenRequest
 
 	err := c.ShouldBindJSON(&data)

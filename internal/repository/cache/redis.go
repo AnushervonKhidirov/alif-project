@@ -1,33 +1,33 @@
-package redisstore
+package cache
 
 import (
 	"context"
 	"pet/internal/config"
-	"pet/internal/repository/redisstore/token"
+	"pet/internal/repository/cache/token"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
-type RedisDB struct {
+type Cache struct {
 	Client *redis.Client
-	Token  TokenStore
+	Token  Token
 }
 
-func New(cfg *config.Redis) *RedisDB {
+func New(cfg *config.Redis) *Cache {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     cfg.Host + ":" + cfg.Port,
 		Password: cfg.Password,
 		DB:       0,
 	})
 
-	return &RedisDB{
+	return &Cache{
 		Client: rdb,
 		Token:  token.NewStore(rdb),
 	}
 }
 
-type TokenStore interface {
+type Token interface {
 	Check(ctx *context.Context, userId int) error
 	Get(ctx *context.Context, userId int) (string, error)
 	Set(ctx *context.Context, userId int, token string, expiresAt time.Duration) error
