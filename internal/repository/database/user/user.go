@@ -2,9 +2,10 @@ package user
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
+	"errors"
 	"pet/internal/model"
+	"pet/pkg/optional"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -23,12 +24,12 @@ type CreateUserArgs struct {
 	Email        string
 	PasswordHash string
 	FirstName    string
-	LastName     *string
+	LastName     optional.String
 }
 
 type UpdateUserArgs struct {
-	FirstName sql.NullString
-	LastName  *string
+	FirstName optional.String
+	LastName  optional.String
 }
 
 type UserRepository struct {
@@ -67,10 +68,10 @@ func (c UserRepository) GetOne(ctx context.Context, filters UserFilter) (*model.
 
 func (c UserRepository) GetMany(ctx context.Context, filters UserFilter) ([]model.User, error) {
 	if filters.Limit != nil && *filters.Limit < 0 {
-		return nil, fmt.Errorf("user query limit must not be negative: %d", *filters.Limit)
+		return nil, errors.New("user query limit must not be negative")
 	}
 	if filters.Offset != nil && *filters.Offset < 0 {
-		return nil, fmt.Errorf("user query offset must not be negative: %d", *filters.Offset)
+		return nil, errors.New("user query offset must not be negative")
 	}
 
 	users := make([]model.User, 0)
@@ -128,16 +129,22 @@ func (c UserRepository) GetMany(ctx context.Context, filters UserFilter) ([]mode
 	return users, nil
 }
 
-// TODO: complete Create
 func (c UserRepository) Create(ctx context.Context, userArgs CreateUserArgs) (*model.User, error) {
 	var user model.User
+
+	namedArgs := make(pgx.NamedArgs)
+	namedArgs["email"] = userArgs.Email
+	namedArgs["passwordHash"] = userArgs.PasswordHash
+	namedArgs["firstName"] = userArgs.FirstName
+	namedArgs["lastName"] = userArgs.LastName.Value
+
 	sqlStr := `
 		INSERT INTO users (email, password_hash, first_name, last_name)
-		VALUES ($1, $2, $3, $4)
+		VALUES (@email, @passwordHash, @firstName, @lastName)
 		RETURNING id, email, first_name, last_name, role, created_at, updated_at;
 	`
 
-	err := c.conn.QueryRow(ctx, sqlStr, userArgs.Email, userArgs.PasswordHash, userArgs.FirstName, userArgs.LastName).Scan(
+	err := c.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
 		&user.Id,
 		&user.Email,
 		&user.FirstName,
@@ -153,16 +160,36 @@ func (c UserRepository) Create(ctx context.Context, userArgs CreateUserArgs) (*m
 	return &user, nil
 }
 
-// TODO: complete Update
 func (c UserRepository) Update(ctx context.Context, userId int, userArgs UpdateUserArgs) (*model.User, error) {
 	var user model.User
-	sqlStr := `
-		UPDATE users SET 
-		WHERE id = $1
+
+	setFields := make([]string, 0)
+	namedArgs := make(pgx.NamedArgs)
+	namedArgs["id"] = userId
+
+	if userArgs.FirstName.IsSet && userArgs.FirstName.Value != nil {
+		setFields = append(setFields, "first_name = @firstName")
+		namedArgs["firstName"] = userArgs.FirstName.Value
+	}
+
+	if userArgs.LastName.IsSet {
+		setFields = append(setFields, "last_name = @lastName")
+		namedArgs["lastName"] = userArgs.LastName.Value
+	}
+
+	_, isFirstOk := namedArgs["firstName"]
+	_, isLastOk := namedArgs["lastName"]
+
+	if !isFirstOk && !isLastOk {
+		return nil, errors.New("Nothing to updated")
+	}
+
+	sqlStr := "UPDATE users SET " + strings.Join(setFields, ", ") + `
+		WHERE id = @id
 		RETURNING id, email, first_name, last_name, role, created_at, updated_at;
 	`
 
-	err := c.conn.QueryRow(ctx, sqlStr, userArgs.FirstName, userArgs.LastName).Scan(
+	err := c.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
 		&user.Id,
 		&user.Email,
 		&user.FirstName,
