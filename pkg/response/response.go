@@ -1,6 +1,7 @@
 package response
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -8,12 +9,12 @@ import (
 )
 
 var errorNames = map[int]string{
-	400: "Bad Request",
-	401: "Unauthorized",
-	403: "Forbidden",
-	404: "Not Found",
-	405: "Method Not Allowed",
-	409: "Conflict",
+	http.StatusBadRequest:       "Bad Request",
+	http.StatusUnauthorized:     "Unauthorized",
+	http.StatusForbidden:        "Forbidden",
+	http.StatusNotFound:         "Not Found",
+	http.StatusMethodNotAllowed: "Method Not Allowed",
+	http.StatusConflict:         "Conflict",
 }
 
 type Response struct {
