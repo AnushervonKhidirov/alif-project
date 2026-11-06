@@ -1,17 +1,19 @@
 package dto
 
+import "pet/pkg/optional"
+
 type CreateUser struct {
-	Email     string
-	Password  string
-	FirstName string
-	LastName  *string
+	Email     string          `json:"email"`
+	Password  string          `json:"password"`
+	FirstName string          `json:"firstName"`
+	LastName  optional.String `json:"lastName"`
 }
 
 type UpdateUser struct {
-	FirstName *string
-	LastName  *string
+	FirstName optional.String `json:"firstName"`
+	LastName  optional.String `json:"lastName"`
 }
 
 type ChangePassword struct {
-	Password string
+	Password string `json:"password"`
 }
