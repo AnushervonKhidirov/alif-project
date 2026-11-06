@@ -63,7 +63,7 @@ func Fail(c *gin.Context, statusCode int, err error) {
 
 func validationErrorsHandler(validationErrors validator.ValidationErrors) string {
 	for _, e := range validationErrors {
-		var fieldName = strings.ToLower(e.Field())
+		var fieldName = strings.ToLower(string([]rune(e.Field())[0])) + string([]rune(e.Field())[1:])
 
 		switch e.Tag() {
 		case "required":
