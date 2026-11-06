@@ -28,8 +28,8 @@ func New(cfg *config.Redis) *Cache {
 }
 
 type Token interface {
-	Check(ctx *context.Context, userId int) error
-	Get(ctx *context.Context, userId int) (string, error)
-	Set(ctx *context.Context, userId int, token string, expiresAt time.Duration) error
-	Delete(ctx *context.Context, userId int) error
+	Check(ctx context.Context, userId int) error
+	Get(ctx context.Context, userId int) (string, error)
+	Set(ctx context.Context, userId int, token string, expiresAt time.Duration) error
+	Delete(ctx context.Context, userId int) error
 }

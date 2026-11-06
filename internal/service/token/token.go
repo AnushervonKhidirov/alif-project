@@ -50,7 +50,7 @@ func NewService(cfg *config.Token, redisClient cache.Token) *TokenService {
 	}
 }
 
-func (s TokenService) GeneratePair(ctx *context.Context, id int, role model.Role) (*model.TokenPair, error) {
+func (s TokenService) GeneratePair(ctx context.Context, id int, role model.Role) (*model.TokenPair, error) {
 	accessToken, err := s.GenerateAccess(id, role)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (s TokenService) VerifyAccess(tokenString string) (*Claims, error) {
 	return claims, nil
 }
 
-func (s TokenService) GenerateRefresh(ctx *context.Context, id int, role model.Role) (string, error) {
+func (s TokenService) GenerateRefresh(ctx context.Context, id int, role model.Role) (string, error) {
 	claims := NewClaims(id, role, s.refreshExpiration)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
@@ -107,7 +107,7 @@ func (s TokenService) GenerateRefresh(ctx *context.Context, id int, role model.R
 	return tokenString, nil
 }
 
-func (s TokenService) VerifyRefresh(ctx *context.Context, tokenString string) (*Claims, error) {
+func (s TokenService) VerifyRefresh(ctx context.Context, tokenString string) (*Claims, error) {
 	claims, err := s.parseToken(tokenString, s.refreshKeyFunc)
 	if err != nil {
 		return nil, err

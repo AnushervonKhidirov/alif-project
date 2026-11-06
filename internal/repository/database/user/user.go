@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type UserFilter struct {
+type Filters struct {
 	Id        *int
 	Email     *string
 	FirstName *string
@@ -28,8 +28,9 @@ type CreateUserArgs struct {
 }
 
 type UpdateUserArgs struct {
-	FirstName optional.String
-	LastName  optional.String
+	FirstName    optional.String
+	LastName     optional.String
+	PasswordHash optional.String
 }
 
 type UserRepository struct {
@@ -40,7 +41,7 @@ func NewRepository(c *pgx.Conn) *UserRepository {
 	return &UserRepository{conn: c}
 }
 
-func (c UserRepository) GetOne(ctx context.Context, filters UserFilter) (*model.User, error) {
+func (c UserRepository) GetOne(ctx context.Context, filters Filters) (*model.User, error) {
 	var user model.User
 
 	cond, namedArgs := buildUserConditions(filters)
@@ -66,7 +67,7 @@ func (c UserRepository) GetOne(ctx context.Context, filters UserFilter) (*model.
 	return &user, nil
 }
 
-func (c UserRepository) GetMany(ctx context.Context, filters UserFilter) ([]model.User, error) {
+func (c UserRepository) GetMany(ctx context.Context, filters Filters) ([]model.User, error) {
 	if filters.Limit != nil && *filters.Limit < 0 {
 		return nil, errors.New("user query limit must not be negative")
 	}
@@ -181,10 +182,16 @@ func (c UserRepository) Update(ctx context.Context, userId int, userArgs UpdateU
 		namedArgs["lastName"] = userArgs.LastName.Value
 	}
 
+	if userArgs.LastName.IsSet {
+		setFields = append(setFields, "password_hash = @passwordHash")
+		namedArgs["passwordHash"] = userArgs.LastName.Value
+	}
+
 	_, isFirstOk := namedArgs["firstName"]
 	_, isLastOk := namedArgs["lastName"]
+	_, isPasswordOk := namedArgs["passwordHash"]
 
-	if !isFirstOk && !isLastOk {
+	if !isFirstOk && !isLastOk && !isPasswordOk {
 		return nil, errors.New("no user fields to update")
 	}
 
@@ -218,7 +225,7 @@ func (c UserRepository) Delete(ctx context.Context, userId int) error {
 }
 
 // helpers
-func buildUserConditions(filters UserFilter) (string, pgx.NamedArgs) {
+func buildUserConditions(filters Filters) (string, pgx.NamedArgs) {
 	cond := "TRUE"
 	namedArgs := make(pgx.NamedArgs)
 

@@ -33,8 +33,8 @@ func (db Database) Connect(ctx context.Context) (*pgx.Conn, error) {
 }
 
 type UserRepo interface {
-	GetOne(ctx context.Context, filters user.UserFilter) (*model.User, error)
-	GetMany(ctx context.Context, filters user.UserFilter) ([]model.User, error)
+	GetOne(ctx context.Context, filters user.Filters) (*model.User, error)
+	GetMany(ctx context.Context, filters user.Filters) ([]model.User, error)
 	Create(ctx context.Context, userArgs user.CreateUserArgs) (*model.User, error)
 	Update(ctx context.Context, userId int, userArgs user.UpdateUserArgs) (*model.User, error)
 	Delete(ctx context.Context, userId int) error

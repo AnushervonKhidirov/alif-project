@@ -32,14 +32,14 @@ func (h AuthHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-	u, err := h.userService.Create(&ctx, &data)
+	u, err := h.userService.Create(ctx, &data)
 	if err != nil {
 		// TODO: handler several error types
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
 
-	tokenPair, err := h.tokenService.GeneratePair(&ctx, u.Id, u.Role)
+	tokenPair, err := h.tokenService.GeneratePair(ctx, u.Id, u.Role)
 	if err != nil {
 		// TODO: handler several error types
 		response.Fail(c, http.StatusBadRequest, err)
