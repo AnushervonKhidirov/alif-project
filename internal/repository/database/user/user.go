@@ -46,13 +46,14 @@ func (c UserRepository) GetOne(ctx context.Context, filters Filters) (*model.Use
 
 	cond, namedArgs := buildUserConditions(filters)
 	sqlStr := `
-		SELECT id, email, first_name, last_name, role, created_at, updated_at FROM users
-		WHERE
-	` + cond + " ORDER BY id ASC LIMIT 1;"
+		SELECT id, email, password_hash, first_name, last_name, role, created_at, updated_at
+		FROM users WHERE
+	` + cond + ";"
 
 	err := c.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
 		&user.Id,
 		&user.Email,
+		&user.PasswordHash,
 		&user.FirstName,
 		&user.LastName,
 		&user.Role,
@@ -80,8 +81,8 @@ func (c UserRepository) GetMany(ctx context.Context, filters Filters) ([]model.U
 	cond, namedArgs := buildUserConditions(filters)
 
 	sqlStr := `
-		SELECT id, email, first_name, last_name, role, created_at, updated_at FROM users
-		WHERE
+		SELECT id, email, first_name, last_name, role, created_at, updated_at
+		FROM users WHERE
 	` + cond + " ORDER BY id ASC"
 
 	if filters.Limit != nil {

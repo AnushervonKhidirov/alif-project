@@ -20,7 +20,7 @@ func New(cfg *config.Database) *Database {
 	}
 }
 
-func (db Database) Connect(ctx context.Context) (*pgx.Conn, error) {
+func (db *Database) Connect(ctx context.Context) (*pgx.Conn, error) {
 	connStr := "postgres://" + db.cfg.User + ":" + db.cfg.Password + "@" + db.cfg.Host + ":" + db.cfg.Port + "/" + db.cfg.DBName
 	conn, err := pgx.Connect(ctx, connStr)
 	if err != nil {

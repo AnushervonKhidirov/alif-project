@@ -1,13 +1,16 @@
 package auth
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"pet/internal/dto"
+	"pet/internal/repository/database/user"
 	"pet/internal/service"
+	"pet/pkg/password"
 	"pet/pkg/response"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 )
 
 type AuthHandler struct {
@@ -23,9 +26,9 @@ func NewHandler(s *service.Service) *AuthHandler {
 }
 
 func (h AuthHandler) SignUp(c *gin.Context) {
-	var data dto.CreateUser
 	ctx := c.Request.Context()
 
+	var data dto.CreateUser
 	err := c.ShouldBindJSON(&data)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
@@ -34,14 +37,12 @@ func (h AuthHandler) SignUp(c *gin.Context) {
 
 	u, err := h.userService.Create(ctx, &data)
 	if err != nil {
-		// TODO: handler several error types
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
 
 	tokenPair, err := h.tokenService.GeneratePair(ctx, u.Id, u.Role)
 	if err != nil {
-		// TODO: handler several error types
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
@@ -50,15 +51,38 @@ func (h AuthHandler) SignUp(c *gin.Context) {
 }
 
 func (h AuthHandler) SignIn(c *gin.Context) {
-	var data dto.SignInRequest
+	ctx := c.Request.Context()
 
+	var data dto.SignInRequest
 	err := c.ShouldBindJSON(&data)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
 
-	fmt.Printf("%#v", data)
+	u, err := h.userService.GetOne(ctx, user.Filters{Email: &data.Email})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			response.Fail(c, http.StatusNotFound, errors.New("wrong email or password"))
+			return
+		}
+
+		response.Fail(c, http.StatusInternalServerError, nil)
+		return
+	}
+
+	if correct := password.CheckHash(data.Password, u.PasswordHash); !correct {
+		response.Fail(c, http.StatusBadRequest, errors.New("wrong email or password"))
+		return
+	}
+
+	tokenPair, err := h.tokenService.GeneratePair(ctx, u.Id, u.Role)
+	if err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
+	response.OK(c, http.StatusOK, dto.TokenResponse(*tokenPair))
 }
 
 func (h AuthHandler) SignOut(c *gin.Context) {
@@ -69,8 +93,6 @@ func (h AuthHandler) SignOut(c *gin.Context) {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
-
-	fmt.Printf("%#v", data)
 }
 
 func (h AuthHandler) RefreshToken(c *gin.Context) {
@@ -81,6 +103,4 @@ func (h AuthHandler) RefreshToken(c *gin.Context) {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
-
-	fmt.Printf("%#v", data)
 }
