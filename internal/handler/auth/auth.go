@@ -86,21 +86,47 @@ func (h AuthHandler) SignIn(c *gin.Context) {
 }
 
 func (h AuthHandler) SignOut(c *gin.Context) {
-	var data dto.RefreshTokenRequest
+	ctx := c.Request.Context()
 
+	var data dto.RefreshTokenRequest
 	err := c.ShouldBindJSON(&data)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
+
+	_, err = h.tokenService.VerifyRefresh(ctx, data.RefreshToken)
+	if err != nil {
+		response.Fail(c, http.StatusUnauthorized, err)
+		return
+	}
+
+	h.tokenService.DeleteRefresh(ctx, data.RefreshToken)
 }
 
 func (h AuthHandler) RefreshToken(c *gin.Context) {
-	var data dto.RefreshTokenRequest
+	ctx := c.Request.Context()
 
+	var data dto.RefreshTokenRequest
 	err := c.ShouldBindJSON(&data)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
+
+	claims, err := h.tokenService.VerifyRefresh(ctx, data.RefreshToken)
+	if err != nil {
+		response.Fail(c, http.StatusUnauthorized, err)
+		return
+	}
+
+	h.tokenService.DeleteRefresh(ctx, data.RefreshToken)
+
+	tokenPair, err := h.tokenService.GeneratePair(ctx, claims.UserId, claims.UserRole)
+	if err != nil {
+		response.Fail(c, http.StatusInternalServerError, nil)
+		return
+	}
+
+	response.OK(c, http.StatusOK, dto.TokenResponse(*tokenPair))
 }
