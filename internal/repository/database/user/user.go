@@ -42,16 +42,16 @@ func NewRepository(c *pgx.Conn) *UserRepository {
 	return &UserRepository{conn: c, tableName: "users"}
 }
 
-func (c UserRepository) GetOne(ctx context.Context, filters Filters) (*model.User, error) {
+func (r UserRepository) GetOne(ctx context.Context, filters Filters) (*model.User, error) {
 	var user model.User
 
 	cond, namedArgs := buildUserConditions(filters)
 	sqlStr := `
 		SELECT id, email, password_hash, first_name, last_name, role, created_at, updated_at
-		FROM ` + c.tableName + ` WHERE
+		FROM ` + r.tableName + ` WHERE
 	` + cond + ";"
 
-	err := c.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
+	err := r.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
 		&user.Id,
 		&user.Email,
 		&user.PasswordHash,
@@ -69,12 +69,12 @@ func (c UserRepository) GetOne(ctx context.Context, filters Filters) (*model.Use
 	return &user, nil
 }
 
-func (c UserRepository) GetMany(ctx context.Context, filters Filters) ([]model.User, error) {
+func (r UserRepository) GetMany(ctx context.Context, filters Filters) ([]model.User, error) {
 	if filters.Limit != nil && *filters.Limit < 0 {
-		return nil, errors.New("user query limit must not be negative")
+		return nil, errors.New("query limit must not be negative")
 	}
 	if filters.Offset != nil && *filters.Offset < 0 {
-		return nil, errors.New("user query offset must not be negative")
+		return nil, errors.New("query offset must not be negative")
 	}
 
 	users := make([]model.User, 0)
@@ -83,7 +83,7 @@ func (c UserRepository) GetMany(ctx context.Context, filters Filters) ([]model.U
 
 	sqlStr := `
 		SELECT id, email, first_name, last_name, role, created_at, updated_at
-		FROM ` + c.tableName + ` WHERE
+		FROM ` + r.tableName + ` WHERE
 	` + cond + " ORDER BY id ASC"
 
 	if filters.Limit != nil {
@@ -98,7 +98,7 @@ func (c UserRepository) GetMany(ctx context.Context, filters Filters) ([]model.U
 
 	sqlStr += ";"
 
-	rows, err := c.conn.Query(ctx, sqlStr, namedArgs)
+	rows, err := r.conn.Query(ctx, sqlStr, namedArgs)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (c UserRepository) GetMany(ctx context.Context, filters Filters) ([]model.U
 	return users, nil
 }
 
-func (c UserRepository) Create(ctx context.Context, userArgs CreateUserArgs) (*model.User, error) {
+func (r UserRepository) Create(ctx context.Context, userArgs CreateUserArgs) (*model.User, error) {
 	var user model.User
 
 	namedArgs := make(pgx.NamedArgs)
@@ -142,12 +142,12 @@ func (c UserRepository) Create(ctx context.Context, userArgs CreateUserArgs) (*m
 	namedArgs["lastName"] = userArgs.LastName.Value
 
 	sqlStr := `
-		INSERT INTO ` + c.tableName + ` (email, password_hash, first_name, last_name)
+		INSERT INTO ` + r.tableName + ` (email, password_hash, first_name, last_name)
 		VALUES (@email, @passwordHash, @firstName, @lastName)
 		RETURNING id, email, first_name, last_name, role, created_at, updated_at;
 	`
 
-	err := c.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
+	err := r.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
 		&user.Id,
 		&user.Email,
 		&user.FirstName,
@@ -163,7 +163,7 @@ func (c UserRepository) Create(ctx context.Context, userArgs CreateUserArgs) (*m
 	return &user, nil
 }
 
-func (c UserRepository) Update(ctx context.Context, userId int, userArgs UpdateUserArgs) (*model.User, error) {
+func (r UserRepository) Update(ctx context.Context, userId int, userArgs UpdateUserArgs) (*model.User, error) {
 	var user model.User
 
 	setFields := make([]string, 0)
@@ -200,12 +200,12 @@ func (c UserRepository) Update(ctx context.Context, userId int, userArgs UpdateU
 	setFields = append(setFields, "updated_at = CURRENT_TIMESTAMP")
 
 	sqlStr := `
-		UPDATE ` + c.tableName + ` SET ` + strings.Join(setFields, ", ") + `
+		UPDATE ` + r.tableName + ` SET ` + strings.Join(setFields, ", ") + `
 		WHERE id = @id
 		RETURNING id, email, first_name, last_name, role, created_at, updated_at;
 	`
 
-	err := c.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
+	err := r.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
 		&user.Id,
 		&user.Email,
 		&user.FirstName,
@@ -221,9 +221,9 @@ func (c UserRepository) Update(ctx context.Context, userId int, userArgs UpdateU
 	return &user, nil
 }
 
-func (c UserRepository) Delete(ctx context.Context, userId int) error {
-	sqlStr := "DELETE FROM " + c.tableName + " WHERE id = $1;"
-	_, err := c.conn.Exec(ctx, sqlStr, userId)
+func (r UserRepository) Delete(ctx context.Context, userId int) error {
+	sqlStr := "DELETE FROM " + r.tableName + " WHERE id = $1;"
+	_, err := r.conn.Exec(ctx, sqlStr, userId)
 	return err
 }
 
