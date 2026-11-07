@@ -99,7 +99,7 @@ func (s TokenService) GenerateRefresh(ctx context.Context, id int, role model.Ro
 		return "", err
 	}
 
-	err = s.redisClient.Set(ctx, id, tokenString, s.refreshExpiration)
+	err = s.redisClient.Set(ctx, tokenString, id, s.refreshExpiration)
 	if err != nil {
 		return "", err
 	}
@@ -113,12 +113,25 @@ func (s TokenService) VerifyRefresh(ctx context.Context, tokenString string) (*C
 		return nil, err
 	}
 
-	err = s.redisClient.Check(ctx, claims.UserId)
+	userId, err := s.redisClient.Get(ctx, tokenString)
 	if err != nil {
 		return nil, errors.New(InvalidTokenError)
 	}
 
+	if userId != claims.UserId {
+		return nil, errors.New(InvalidTokenError)
+	}
+
 	return claims, nil
+}
+
+func (s TokenService) DeleteRefresh(ctx context.Context, tokenString string) error {
+	err := s.redisClient.Delete(ctx, tokenString)
+	if err != nil {
+		return errors.New(InvalidTokenError)
+	}
+
+	return nil
 }
 
 // helpers

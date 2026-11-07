@@ -35,6 +35,7 @@ type TokenService interface {
 	VerifyAccess(tokenString string) (*token.Claims, error)
 	GenerateRefresh(ctx context.Context, id int, role model.Role) (string, error)
 	VerifyRefresh(ctx context.Context, tokenString string) (*token.Claims, error)
+	DeleteRefresh(ctx context.Context, tokenString string) error
 }
 
 // User
