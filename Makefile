@@ -9,14 +9,20 @@ GOOSE ?= goose
 
 .PHONY: up down check-db-password migrate-up migrate-down
 
-run:
+up:
 	docker compose up
 
-run-d:
+up-b:
+	docker compose up --build
+
+up-d:
 	docker compose up -d
 
-stop:
+down:
 	docker compose down
+
+down-v:
+	docker compose down -v
 
 migrate-up: check-db-password
 	$(GOOSE) -dir migrations postgres "$(DATABASE_URL)" up
