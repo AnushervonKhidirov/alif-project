@@ -18,9 +18,8 @@ func NewStore(client *redis.Client) *TokenStore {
 	}
 }
 
-func (s *TokenStore) Check(ctx context.Context, userId int) error {
-	key := s.generateTokenKey(userId)
-	_, err := s.rdb.Exists(ctx, key).Result()
+func (s *TokenStore) Check(ctx context.Context, token string) error {
+	_, err := s.rdb.Exists(ctx, token).Result()
 	if err != nil {
 		return err
 	}
@@ -28,27 +27,24 @@ func (s *TokenStore) Check(ctx context.Context, userId int) error {
 	return nil
 }
 
-func (s *TokenStore) Get(ctx context.Context, userId int) (string, error) {
-	key := s.generateTokenKey(userId)
-	token, err := s.rdb.Get(ctx, key).Result()
+func (s *TokenStore) Get(ctx context.Context, token string) (int, error) {
+	userIdStr, err := s.rdb.Get(ctx, token).Result()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
-	return token, nil
+	userId, err := strconv.Atoi(userIdStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return userId, nil
 }
 
-func (s *TokenStore) Set(ctx context.Context, userId int, token string, expiresAt time.Duration) error {
-	key := s.generateTokenKey(userId)
-	return s.rdb.Set(ctx, key, token, expiresAt).Err()
+func (s *TokenStore) Set(ctx context.Context, token string, userId int, expiresAt time.Duration) error {
+	return s.rdb.Set(ctx, token, userId, expiresAt).Err()
 }
 
-func (s *TokenStore) Delete(ctx context.Context, userId int) error {
-	key := s.generateTokenKey(userId)
-	s.rdb.Del(ctx, key)
-	return nil
-}
-
-func (*TokenStore) generateTokenKey(userId int) string {
-	return "user_token_" + strconv.Itoa(userId)
+func (s *TokenStore) Delete(ctx context.Context, token string) error {
+	return s.rdb.Del(ctx, token).Err()
 }
