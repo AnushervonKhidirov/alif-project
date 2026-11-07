@@ -42,7 +42,7 @@ func (h AuthHandler) SignUp(c *gin.Context) {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == pgerrcode.UniqueViolation {
-				response.Fail(c, http.StatusConflict, errors.New("user with this email already exists"))
+				response.Fail(c, http.StatusConflict, errors.New("user already exists"))
 				return
 			}
 		}

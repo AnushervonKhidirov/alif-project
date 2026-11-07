@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"errors"
 	"pet/internal/dto"
 	"pet/internal/model"
 	"pet/internal/repository/database"
@@ -40,7 +39,7 @@ func (s UserService) GetMany(ctx context.Context, filter userRepo.Filters) ([]mo
 func (s UserService) Create(ctx context.Context, data *dto.CreateUser) (*model.User, error) {
 	passwordHash, err := password.Hash(data.Password)
 	if err != nil {
-		return nil, errors.New("unable to hash password")
+		return nil, err
 	}
 
 	createArgs := userRepo.CreateUserArgs{
@@ -52,7 +51,7 @@ func (s UserService) Create(ctx context.Context, data *dto.CreateUser) (*model.U
 
 	u, err := s.repo.Create(ctx, createArgs)
 	if err != nil {
-		return nil, errors.New("unable to create user")
+		return nil, err
 	}
 
 	return u, nil
@@ -62,7 +61,7 @@ func (s UserService) Update(ctx context.Context, id int, data *dto.UpdateUser) (
 	updateArgs := userRepo.UpdateUserArgs{FirstName: data.FirstName, LastName: data.LastName}
 	u, err := s.repo.Update(ctx, id, updateArgs)
 	if err != nil {
-		return nil, errors.New("unable to update user")
+		return nil, err
 	}
 
 	return u, nil
@@ -71,7 +70,7 @@ func (s UserService) Update(ctx context.Context, id int, data *dto.UpdateUser) (
 func (s UserService) ChangePassword(ctx context.Context, id int, newPassword string) error {
 	newPasswordHash, err := password.Hash(newPassword)
 	if err != nil {
-		return errors.New("unable to hash password")
+		return err
 	}
 
 	passwordHash := optional.String{Value: &newPasswordHash, IsSet: true}
