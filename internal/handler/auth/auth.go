@@ -10,7 +10,9 @@ import (
 	"pet/pkg/response"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type AuthHandler struct {
@@ -37,13 +39,21 @@ func (h AuthHandler) SignUp(c *gin.Context) {
 
 	u, err := h.userService.Create(ctx, &data)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == pgerrcode.UniqueViolation {
+				response.Fail(c, http.StatusConflict, errors.New("user with this email already exists"))
+				return
+			}
+		}
+
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
 
 	tokenPair, err := h.tokenService.GeneratePair(ctx, u.Id, u.Role)
 	if err != nil {
-		response.Fail(c, http.StatusBadRequest, err)
+		response.Fail(c, http.StatusInternalServerError, nil)
 		return
 	}
 
@@ -78,7 +88,7 @@ func (h AuthHandler) SignIn(c *gin.Context) {
 
 	tokenPair, err := h.tokenService.GeneratePair(ctx, u.Id, u.Role)
 	if err != nil {
-		response.Fail(c, http.StatusBadRequest, err)
+		response.Fail(c, http.StatusInternalServerError, nil)
 		return
 	}
 
