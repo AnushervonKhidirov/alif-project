@@ -45,7 +45,7 @@ func NewRepository(c *pgx.Conn) *UserRepository {
 func (r UserRepository) GetOne(ctx context.Context, filters Filters) (*model.User, error) {
 	var user model.User
 
-	cond, namedArgs := buildUserConditions(filters)
+	cond, namedArgs := buildConditions(filters)
 	sqlStr := `
 		SELECT id, email, password_hash, first_name, last_name, role, created_at, updated_at
 		FROM ` + r.tableName + ` WHERE
@@ -79,7 +79,7 @@ func (r UserRepository) GetMany(ctx context.Context, filters Filters) ([]model.U
 
 	users := make([]model.User, 0)
 
-	cond, namedArgs := buildUserConditions(filters)
+	cond, namedArgs := buildConditions(filters)
 
 	sqlStr := `
 		SELECT id, email, first_name, last_name, role, created_at, updated_at
@@ -163,12 +163,12 @@ func (r UserRepository) Create(ctx context.Context, userArgs CreateUserArgs) (*m
 	return &user, nil
 }
 
-func (r UserRepository) Update(ctx context.Context, userId int, userArgs UpdateUserArgs) (*model.User, error) {
+func (r UserRepository) Update(ctx context.Context, id int, userArgs UpdateUserArgs) (*model.User, error) {
 	var user model.User
 
 	setFields := make([]string, 0)
 	namedArgs := make(pgx.NamedArgs)
-	namedArgs["id"] = userId
+	namedArgs["id"] = id
 
 	if userArgs.FirstName.IsSet {
 		if userArgs.FirstName.Value == nil {
@@ -184,9 +184,9 @@ func (r UserRepository) Update(ctx context.Context, userId int, userArgs UpdateU
 		namedArgs["lastName"] = userArgs.LastName.Value
 	}
 
-	if userArgs.LastName.IsSet {
+	if userArgs.PasswordHash.IsSet {
 		setFields = append(setFields, "password_hash = @passwordHash")
-		namedArgs["passwordHash"] = userArgs.LastName.Value
+		namedArgs["passwordHash"] = userArgs.PasswordHash.Value
 	}
 
 	_, isFirstOk := namedArgs["firstName"]
@@ -194,7 +194,7 @@ func (r UserRepository) Update(ctx context.Context, userId int, userArgs UpdateU
 	_, isPasswordOk := namedArgs["passwordHash"]
 
 	if !isFirstOk && !isLastOk && !isPasswordOk {
-		return nil, errors.New("no user fields to update")
+		return nil, errors.New("no fields to update")
 	}
 
 	setFields = append(setFields, "updated_at = CURRENT_TIMESTAMP")
@@ -221,14 +221,14 @@ func (r UserRepository) Update(ctx context.Context, userId int, userArgs UpdateU
 	return &user, nil
 }
 
-func (r UserRepository) Delete(ctx context.Context, userId int) error {
+func (r UserRepository) Delete(ctx context.Context, id int) error {
 	sqlStr := "DELETE FROM " + r.tableName + " WHERE id = $1;"
-	_, err := r.conn.Exec(ctx, sqlStr, userId)
+	_, err := r.conn.Exec(ctx, sqlStr, id)
 	return err
 }
 
 // helpers
-func buildUserConditions(filters Filters) (string, pgx.NamedArgs) {
+func buildConditions(filters Filters) (string, pgx.NamedArgs) {
 	cond := "TRUE"
 	namedArgs := make(pgx.NamedArgs)
 
