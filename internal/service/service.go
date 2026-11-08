@@ -30,12 +30,25 @@ func New(cfg *config.AppConf, repo *database.Database, cache *cache.Cache) *Serv
 
 // Auth
 type Token interface {
+	TokenAccessVerifier
+	TokenRefreshVerifier
+	TokenGenerator
+
+	DeleteRefresh(ctx context.Context, tokenString string) error
+}
+
+type TokenAccessVerifier interface {
+	VerifyAccess(tokenString string) (*token.Claims, error)
+}
+
+type TokenRefreshVerifier interface {
+	VerifyRefresh(ctx context.Context, tokenString string) (*token.Claims, error)
+}
+
+type TokenGenerator interface {
 	GeneratePair(ctx context.Context, id int, role model.Role) (*model.TokenPair, error)
 	GenerateAccess(id int, role model.Role) (string, error)
-	VerifyAccess(tokenString string) (*token.Claims, error)
 	GenerateRefresh(ctx context.Context, id int, role model.Role) (string, error)
-	VerifyRefresh(ctx context.Context, tokenString string) (*token.Claims, error)
-	DeleteRefresh(ctx context.Context, tokenString string) error
 }
 
 // User
