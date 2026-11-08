@@ -132,14 +132,14 @@ func (r UserRepository) GetMany(ctx context.Context, filters Filters) ([]model.U
 	return users, nil
 }
 
-func (r UserRepository) Create(ctx context.Context, userArgs CreateUserArgs) (*model.User, error) {
+func (r UserRepository) Create(ctx context.Context, createArgs CreateUserArgs) (*model.User, error) {
 	var user model.User
 
 	namedArgs := make(pgx.NamedArgs)
-	namedArgs["email"] = userArgs.Email
-	namedArgs["passwordHash"] = userArgs.PasswordHash
-	namedArgs["firstName"] = userArgs.FirstName
-	namedArgs["lastName"] = userArgs.LastName.Value
+	namedArgs["email"] = createArgs.Email
+	namedArgs["passwordHash"] = createArgs.PasswordHash
+	namedArgs["firstName"] = createArgs.FirstName
+	namedArgs["lastName"] = createArgs.LastName.Value
 
 	sqlStr := `
 		INSERT INTO ` + r.tableName + ` (email, password_hash, first_name, last_name)
@@ -163,30 +163,30 @@ func (r UserRepository) Create(ctx context.Context, userArgs CreateUserArgs) (*m
 	return &user, nil
 }
 
-func (r UserRepository) Update(ctx context.Context, id int, userArgs UpdateUserArgs) (*model.User, error) {
+func (r UserRepository) Update(ctx context.Context, id int, updateArgs UpdateUserArgs) (*model.User, error) {
 	var user model.User
 
 	setFields := make([]string, 0)
 	namedArgs := make(pgx.NamedArgs)
 	namedArgs["id"] = id
 
-	if userArgs.FirstName.IsSet {
-		if userArgs.FirstName.Value == nil {
+	if updateArgs.FirstName.IsSet {
+		if updateArgs.FirstName.Value == nil {
 			return nil, errors.New("first name must not be null")
 		}
 
 		setFields = append(setFields, "first_name = @firstName")
-		namedArgs["firstName"] = userArgs.FirstName.Value
+		namedArgs["firstName"] = updateArgs.FirstName.Value
 	}
 
-	if userArgs.LastName.IsSet {
+	if updateArgs.LastName.IsSet {
 		setFields = append(setFields, "last_name = @lastName")
-		namedArgs["lastName"] = userArgs.LastName.Value
+		namedArgs["lastName"] = updateArgs.LastName.Value
 	}
 
-	if userArgs.PasswordHash.IsSet {
+	if updateArgs.PasswordHash.IsSet {
 		setFields = append(setFields, "password_hash = @passwordHash")
-		namedArgs["passwordHash"] = userArgs.PasswordHash.Value
+		namedArgs["passwordHash"] = updateArgs.PasswordHash.Value
 	}
 
 	_, isFirstOk := namedArgs["firstName"]
