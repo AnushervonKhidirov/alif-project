@@ -67,6 +67,11 @@ func (s UserService) Update(ctx context.Context, id int, data dto.UpdateUser) (*
 	return user, nil
 }
 
+func (s UserService) Delete(ctx context.Context, id int) error {
+	return s.repo.Delete(ctx, id)
+}
+
+// TODO check old password before updating
 func (s UserService) ChangePassword(ctx context.Context, id int, newPassword string) error {
 	newPasswordHash, err := password.Hash(newPassword)
 	if err != nil {
@@ -78,6 +83,6 @@ func (s UserService) ChangePassword(ctx context.Context, id int, newPassword str
 	return err
 }
 
-func (s UserService) Delete(ctx context.Context, id int) error {
-	return s.repo.Delete(ctx, id)
+func (s UserService) ResetPassword(ctx context.Context, id int, newPassword string) error {
+	return nil
 }
