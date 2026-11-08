@@ -42,9 +42,9 @@ Table breeds {
 
 Table vet_clinics {
 	id int [pk, increment]
-	name varchar(30)
+	name varchar(30) [not null]
 	about text
-	address varchar(255)
+	address varchar(255) [not null]
 	created_at timestamp
 	updated_at timestamp
 }
