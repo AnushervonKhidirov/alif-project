@@ -13,9 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const Authorization = "Authorization"
-
-func Auth(tokenService service.TokenService, permittedRoles []model.Role) gin.HandlerFunc {
+func Auth(tokenService service.TokenAccessVerifier, permittedRoles []model.Role) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := getTokenFromHeader(c)
 		if err != nil {
@@ -44,7 +42,7 @@ func Auth(tokenService service.TokenService, permittedRoles []model.Role) gin.Ha
 func getTokenFromHeader(c *gin.Context) (string, error) {
 	header := c.Request.Header
 
-	if authorization, ok := header[Authorization]; ok {
+	if authorization, ok := header["Authorization"]; ok {
 		token := strings.ReplaceAll(authorization[0], "Bearer ", "")
 		return token, nil
 	}
