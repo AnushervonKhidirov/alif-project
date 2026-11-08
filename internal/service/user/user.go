@@ -36,7 +36,7 @@ func (s UserService) GetMany(ctx context.Context, filter userRepo.Filters) ([]mo
 	return users, nil
 }
 
-func (s UserService) Create(ctx context.Context, data *dto.CreateUser) (*model.User, error) {
+func (s UserService) Create(ctx context.Context, data dto.CreateUser) (*model.User, error) {
 	passwordHash, err := password.Hash(data.Password)
 	if err != nil {
 		return nil, err
@@ -49,22 +49,22 @@ func (s UserService) Create(ctx context.Context, data *dto.CreateUser) (*model.U
 		LastName:     data.LastName,
 	}
 
-	u, err := s.repo.Create(ctx, createArgs)
+	user, err := s.repo.Create(ctx, createArgs)
 	if err != nil {
 		return nil, err
 	}
 
-	return u, nil
+	return user, nil
 }
 
-func (s UserService) Update(ctx context.Context, id int, data *dto.UpdateUser) (*model.User, error) {
+func (s UserService) Update(ctx context.Context, id int, data dto.UpdateUser) (*model.User, error) {
 	updateArgs := userRepo.UpdateUserArgs{FirstName: data.FirstName, LastName: data.LastName}
-	u, err := s.repo.Update(ctx, id, updateArgs)
+	user, err := s.repo.Update(ctx, id, updateArgs)
 	if err != nil {
 		return nil, err
 	}
 
-	return u, nil
+	return user, nil
 }
 
 func (s UserService) ChangePassword(ctx context.Context, id int, newPassword string) error {
