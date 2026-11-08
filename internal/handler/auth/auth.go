@@ -16,8 +16,8 @@ import (
 )
 
 type Handler struct {
-	userService  service.UserService
-	tokenService service.TokenService
+	userService  service.User
+	tokenService service.Token
 }
 
 func NewHandler(s *service.Service) *Handler {

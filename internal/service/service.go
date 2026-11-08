@@ -13,12 +13,12 @@ import (
 )
 
 type Service struct {
-	User      UserService
-	Token     TokenService
-	Pet       PetService
-	PetType   PetTypeService
-	Breed     BreedService
-	VetClinic VetClinicService
+	User      User
+	Token     Token
+	Pet       Pet
+	PetType   PetType
+	Breed     Breed
+	VetClinic VetClinic
 }
 
 func New(cfg *config.AppConf, repo *database.Database, cache *cache.Cache) *Service {
@@ -29,7 +29,7 @@ func New(cfg *config.AppConf, repo *database.Database, cache *cache.Cache) *Serv
 }
 
 // Auth
-type TokenService interface {
+type Token interface {
 	GeneratePair(ctx context.Context, id int, role model.Role) (*model.TokenPair, error)
 	GenerateAccess(id int, role model.Role) (string, error)
 	VerifyAccess(tokenString string) (*token.Claims, error)
@@ -39,7 +39,7 @@ type TokenService interface {
 }
 
 // User
-type UserService interface {
+type User interface {
 	GetOne(ctx context.Context, filter userDb.Filters) (*model.User, error)
 	GetMany(ctx context.Context, filter userDb.Filters) ([]model.User, error)
 	Create(ctx context.Context, data dto.CreateUser) (*model.User, error)
@@ -49,11 +49,11 @@ type UserService interface {
 }
 
 // Pet
-type PetService interface {
+type Pet interface {
 }
 
 // PetType
-type PetTypeService interface {
+type PetType interface {
 	GetOne() (*model.PetType, error)
 	GetMany() ([]model.PetType, error)
 	Create() (*model.PetType, error)
@@ -62,7 +62,7 @@ type PetTypeService interface {
 }
 
 // Breed
-type BreedService interface {
+type Breed interface {
 	GetOne() (*model.Breed, error)
 	GetMany() ([]model.Breed, error)
 	Create() (*model.Breed, error)
@@ -71,7 +71,7 @@ type BreedService interface {
 }
 
 // VetClinic
-type VetClinicService interface {
+type VetClinic interface {
 	GetOne() (*model.VetClinic, error)
 	GetMany() ([]model.VetClinic, error)
 	Create() (*model.VetClinic, error)
