@@ -42,8 +42,8 @@ type TokenService interface {
 type UserService interface {
 	GetOne(ctx context.Context, filter userDb.Filters) (*model.User, error)
 	GetMany(ctx context.Context, filter userDb.Filters) ([]model.User, error)
-	Create(ctx context.Context, data *dto.CreateUser) (*model.User, error)
-	Update(ctx context.Context, id int, data *dto.UpdateUser) (*model.User, error)
+	Create(ctx context.Context, data dto.CreateUser) (*model.User, error)
+	Update(ctx context.Context, id int, data dto.UpdateUser) (*model.User, error)
 	ChangePassword(ctx context.Context, id int, newPasswordHash string) error
 	Delete(ctx context.Context, id int) error
 }
