@@ -1,20 +1,20 @@
-package route
+package auth
 
 import (
-	"pet/internal/handler"
+	"pet/internal/handler/auth"
 
 	"github.com/gin-gonic/gin"
 )
 
-type AuthRoute struct {
-	h handler.AuthHandler
+type Route struct {
+	h *auth.Handler
 }
 
-func NewAuth(handler handler.AuthHandler) *AuthRoute {
-	return &AuthRoute{h: handler}
+func NewRoute(handler *auth.Handler) *Route {
+	return &Route{h: handler}
 }
 
-func (r *AuthRoute) Init(g *gin.RouterGroup) {
+func (r *Route) Init(g *gin.RouterGroup) {
 	group := g.Group("/auth")
 
 	{
