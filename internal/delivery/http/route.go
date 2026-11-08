@@ -4,6 +4,7 @@ import (
 	"pet/internal/delivery/http/auth"
 	pettype "pet/internal/delivery/http/pet_type"
 	"pet/internal/handler"
+	"pet/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,13 +16,13 @@ type Route struct {
 	petType *pettype.Route
 }
 
-func New(handler *handler.Handler) *Route {
+func New(handler *handler.Handler, tokenService service.TokenAccessVerifier) *Route {
 	engine := gin.Default()
 
 	return &Route{
 		Engine:  engine,
 		auth:    auth.NewRoute(handler.Auth),
-		petType: pettype.NewRoute(handler.PetType),
+		petType: pettype.NewRoute(handler.PetType, tokenService),
 	}
 }
 

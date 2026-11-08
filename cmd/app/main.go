@@ -35,7 +35,7 @@ func main() {
 	s := service.New(cfg, r, cache)
 	h := handler.New(s)
 
-	router := route.New(h)
+	router := route.New(h, s.Token)
 	router.Init()
 	router.Engine.Run(":" + cfg.HttpServer.Port)
 }
