@@ -37,7 +37,7 @@ func (h AuthHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-	u, err := h.userService.Create(ctx, &data)
+	u, err := h.userService.Create(ctx, data)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
