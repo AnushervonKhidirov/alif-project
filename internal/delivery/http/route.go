@@ -1,6 +1,8 @@
 package route
 
 import (
+	"pet/internal/delivery/http/auth"
+	pettype "pet/internal/delivery/http/pet_type"
 	"pet/internal/handler"
 
 	"github.com/gin-gonic/gin"
@@ -9,15 +11,17 @@ import (
 type Route struct {
 	Engine *gin.Engine
 
-	auth *AuthRoute
+	auth    *auth.Route
+	petType *pettype.Route
 }
 
 func New(handler *handler.Handler) *Route {
 	engine := gin.Default()
 
 	return &Route{
-		Engine: engine,
-		auth:   NewAuth(handler.Auth),
+		Engine:  engine,
+		auth:    auth.NewRoute(handler.Auth),
+		petType: pettype.NewRoute(handler.PetType),
 	}
 }
 
