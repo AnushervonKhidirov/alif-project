@@ -149,12 +149,12 @@ func (r VetClinicRepository) Create(ctx context.Context, createArgs CreateVetCli
 	return &vetClinic, nil
 }
 
-func (r VetClinicRepository) Update(ctx context.Context, userId int, updateArgs UpdateVetClinicArgs) (*model.VetClinic, error) {
+func (r VetClinicRepository) Update(ctx context.Context, id int, updateArgs UpdateVetClinicArgs) (*model.VetClinic, error) {
 	var vetClinic model.VetClinic
 
 	setFields := make([]string, 0)
 	namedArgs := make(pgx.NamedArgs)
-	namedArgs["id"] = userId
+	namedArgs["id"] = id
 
 	if updateArgs.Name.IsSet {
 		if updateArgs.Name.Value == nil {
