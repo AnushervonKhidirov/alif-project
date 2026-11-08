@@ -1,4 +1,4 @@
-package pettype
+package breed
 
 import (
 	"context"
