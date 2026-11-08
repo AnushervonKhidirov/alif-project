@@ -34,5 +34,6 @@ func (r *Route) Init() {
 
 		// Initializing routes
 		r.auth.Init(v1)
+		r.petType.Init(v1)
 	}
 }
