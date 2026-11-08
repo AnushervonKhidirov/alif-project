@@ -15,19 +15,19 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-type AuthHandler struct {
+type Handler struct {
 	userService  service.UserService
 	tokenService service.TokenService
 }
 
-func NewHandler(s *service.Service) *AuthHandler {
-	return &AuthHandler{
+func NewHandler(s *service.Service) *Handler {
+	return &Handler{
 		userService:  s.User,
 		tokenService: s.Token,
 	}
 }
 
-func (h AuthHandler) SignUp(c *gin.Context) {
+func (h Handler) SignUp(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var data dto.CreateUser
@@ -60,7 +60,7 @@ func (h AuthHandler) SignUp(c *gin.Context) {
 	response.OK(c, http.StatusCreated, dto.TokenResponse(*tokenPair))
 }
 
-func (h AuthHandler) SignIn(c *gin.Context) {
+func (h Handler) SignIn(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var data dto.SignInRequest
@@ -95,7 +95,7 @@ func (h AuthHandler) SignIn(c *gin.Context) {
 	response.OK(c, http.StatusOK, dto.TokenResponse(*tokenPair))
 }
 
-func (h AuthHandler) SignOut(c *gin.Context) {
+func (h Handler) SignOut(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var data dto.RefreshTokenRequest
@@ -114,7 +114,7 @@ func (h AuthHandler) SignOut(c *gin.Context) {
 	h.tokenService.DeleteRefresh(ctx, data.RefreshToken)
 }
 
-func (h AuthHandler) RefreshToken(c *gin.Context) {
+func (h Handler) RefreshToken(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var data dto.RefreshTokenRequest
