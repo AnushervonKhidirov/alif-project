@@ -31,8 +31,7 @@ func (h Handler) SignUp(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var data dto.CreateUser
-	err := c.ShouldBindJSON(&data)
-	if err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
@@ -64,8 +63,7 @@ func (h Handler) SignIn(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var data dto.SignInRequest
-	err := c.ShouldBindJSON(&data)
-	if err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
@@ -99,13 +97,12 @@ func (h Handler) SignOut(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var data dto.RefreshTokenRequest
-	err := c.ShouldBindJSON(&data)
-	if err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
 
-	_, err = h.tokenService.VerifyRefresh(ctx, data.RefreshToken)
+	_, err := h.tokenService.VerifyRefresh(ctx, data.RefreshToken)
 	if err != nil {
 		response.Fail(c, http.StatusUnauthorized, err)
 		return
@@ -118,8 +115,7 @@ func (h Handler) RefreshToken(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var data dto.RefreshTokenRequest
-	err := c.ShouldBindJSON(&data)
-	if err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
