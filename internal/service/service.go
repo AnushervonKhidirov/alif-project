@@ -8,6 +8,8 @@ import (
 	"pet/internal/repository/cache"
 	"pet/internal/repository/database"
 	userDb "pet/internal/repository/database/user"
+	"pet/internal/service/breed"
+	pettype "pet/internal/service/pet_type"
 	"pet/internal/service/token"
 	"pet/internal/service/user"
 )
@@ -21,10 +23,12 @@ type Service struct {
 	VetClinic VetClinic
 }
 
-func New(cfg *config.AppConf, repo *database.Database, cache *cache.Cache) *Service {
+func New(cfg *config.AppConf, r *database.Database, cache *cache.Cache) *Service {
 	return &Service{
-		User:  user.NewService(repo.UserRepository),
-		Token: token.NewService(&cfg.Token, cache.Token),
+		User:    user.NewService(r.UserRepository),
+		Token:   token.NewService(&cfg.Token, cache.Token),
+		PetType: pettype.NewService(r.PetTypeRepository),
+		Breed:   breed.NewService(r.BreedRepository),
 	}
 }
 
@@ -62,32 +66,31 @@ type User interface {
 }
 
 // Pet
-type Pet interface {
-}
+type Pet interface{}
 
 // PetType
 type PetType interface {
-	GetOne() (*model.PetType, error)
-	GetMany() ([]model.PetType, error)
-	Create() (*model.PetType, error)
-	Update() (*model.PetType, error)
-	Delete() error
+	GetOne(ctx context.Context, id int) (*model.PetType, error)
+	GetMany(ctx context.Context) ([]model.PetType, error)
+	Create(ctx context.Context, data dto.PetType) (*model.PetType, error)
+	Update(ctx context.Context, id int, data dto.PetType) (*model.PetType, error)
+	Delete(ctx context.Context, id int) error
 }
 
 // Breed
 type Breed interface {
-	GetOne() (*model.Breed, error)
-	GetMany() ([]model.Breed, error)
-	Create() (*model.Breed, error)
-	Update() (*model.Breed, error)
-	Delete() error
+	GetOne(ctx context.Context, id int) (*model.Breed, error)
+	GetMany(ctx context.Context) ([]model.Breed, error)
+	Create(ctx context.Context, data dto.CreateBreed) (*model.Breed, error)
+	Update(ctx context.Context, id int, data dto.UpdateBreed) (*model.Breed, error)
+	Delete(ctx context.Context, id int) error
 }
 
 // VetClinic
 type VetClinic interface {
-	GetOne() (*model.VetClinic, error)
-	GetMany() ([]model.VetClinic, error)
-	Create() (*model.VetClinic, error)
-	Update() (*model.VetClinic, error)
-	Delete() error
+	GetOne(ctx context.Context, id int) (*model.VetClinic, error)
+	GetMany(ctx context.Context) ([]model.VetClinic, error)
+	Create(ctx context.Context) (*model.VetClinic, error)
+	Update(ctx context.Context, id int) (*model.VetClinic, error)
+	Delete(ctx context.Context, id int) error
 }
