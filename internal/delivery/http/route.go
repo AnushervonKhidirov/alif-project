@@ -2,6 +2,7 @@ package route
 
 import (
 	"pet/internal/delivery/http/auth"
+	"pet/internal/delivery/http/breed"
 	pettype "pet/internal/delivery/http/pet_type"
 	"pet/internal/handler"
 	"pet/internal/service"
@@ -14,6 +15,7 @@ type Route struct {
 
 	auth    *auth.Route
 	petType *pettype.Route
+	breed   *breed.Route
 }
 
 func New(handler *handler.Handler, tokenService service.TokenAccessVerifier) *Route {
@@ -23,6 +25,7 @@ func New(handler *handler.Handler, tokenService service.TokenAccessVerifier) *Ro
 		Engine:  engine,
 		auth:    auth.NewRoute(handler.Auth),
 		petType: pettype.NewRoute(handler.PetType, tokenService),
+		breed:   breed.NewRoute(handler.Breed, tokenService),
 	}
 }
 
@@ -35,5 +38,6 @@ func (r *Route) Init() {
 		// Initializing routes
 		r.auth.Init(v1)
 		r.petType.Init(v1)
+		r.breed.Init(v1)
 	}
 }
