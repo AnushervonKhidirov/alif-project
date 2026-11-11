@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"pet/internal/dto"
 	"pet/internal/model"
 	"pet/internal/repository/database"
@@ -71,9 +72,17 @@ func (s UserService) Delete(ctx context.Context, id int) error {
 	return s.repo.Delete(ctx, id)
 }
 
-// TODO check old password before updating
-func (s UserService) ChangePassword(ctx context.Context, id int, newPassword string) error {
-	newPasswordHash, err := password.Hash(newPassword)
+func (s UserService) ChangePassword(ctx context.Context, id int, data dto.ChangePassword) error {
+	oldPasswordHash, err := s.repo.GetPassword(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if isCorrect := password.CheckHash(data.OldPassword, oldPasswordHash); !isCorrect {
+		return errors.New("wrong old password")
+	}
+
+	newPasswordHash, err := password.Hash(data.NewPassword)
 	if err != nil {
 		return err
 	}
@@ -81,8 +90,4 @@ func (s UserService) ChangePassword(ctx context.Context, id int, newPassword str
 	passwordHash := optional.String{Value: &newPasswordHash, IsSet: true}
 	_, err = s.repo.Update(ctx, id, userRepo.UpdateUserArgs{PasswordHash: passwordHash})
 	return err
-}
-
-func (s UserService) ResetPassword(ctx context.Context, id int, newPassword string) error {
-	return nil
 }
