@@ -19,7 +19,7 @@ func NewService(r database.UserRepo) *UserService {
 	return &UserService{repo: r}
 }
 
-func (s UserService) GetOne(ctx context.Context, filter userRepo.Filters) (*model.User, error) {
+func (s UserService) GetOne(ctx context.Context, filter *userRepo.FilterOne) (*model.User, error) {
 	user, err := s.repo.GetOne(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func (s UserService) GetOne(ctx context.Context, filter userRepo.Filters) (*mode
 	return user, nil
 }
 
-func (s UserService) GetMany(ctx context.Context, filter userRepo.Filters) ([]model.User, error) {
+func (s UserService) GetMany(ctx context.Context, filter *userRepo.FilterMany) ([]model.User, error) {
 	users, err := s.repo.GetMany(ctx, filter)
 	if err != nil {
 		return nil, err

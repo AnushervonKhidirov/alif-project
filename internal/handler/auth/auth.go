@@ -68,7 +68,7 @@ func (h Handler) SignIn(c *gin.Context) {
 		return
 	}
 
-	u, err := h.userService.GetOne(ctx, user.Filters{Email: &data.Email})
+	u, err := h.userService.GetOne(ctx, &user.FilterOne{Email: &data.Email})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			response.Fail(c, http.StatusNotFound, errors.New("wrong email or password"))

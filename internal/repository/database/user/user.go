@@ -10,14 +10,16 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type Filters struct {
-	Id        *int
-	Email     *string
+type FilterOne struct {
+	Id    *int
+	Email *string
+}
+
+type FilterMany struct {
 	FirstName *string
 	LastName  *string
-
-	Limit  *int
-	Offset *int
+	Limit     int
+	Offset    int
 }
 
 type CreateUserArgs struct {
@@ -42,10 +44,10 @@ func NewRepository(c *pgx.Conn) *UserRepository {
 	return &UserRepository{conn: c, tableName: "users"}
 }
 
-func (r UserRepository) GetOne(ctx context.Context, filters Filters) (*model.User, error) {
+func (r UserRepository) GetOne(ctx context.Context, filters *FilterOne) (*model.User, error) {
 	var user model.User
 
-	cond, namedArgs := buildConditions(filters)
+	cond, namedArgs := buildOneConditions(filters)
 	sqlStr := `
 		SELECT id, email, password_hash, first_name, last_name, role, created_at, updated_at
 		FROM ` + r.tableName + ` WHERE
@@ -69,32 +71,28 @@ func (r UserRepository) GetOne(ctx context.Context, filters Filters) (*model.Use
 	return &user, nil
 }
 
-func (r UserRepository) GetMany(ctx context.Context, filters Filters) ([]model.User, error) {
-	if filters.Limit != nil && *filters.Limit < 0 {
+func (r UserRepository) GetMany(ctx context.Context, filters *FilterMany) ([]model.User, error) {
+	if filters.Limit < 0 {
 		return nil, errors.New("query limit must not be negative")
 	}
-	if filters.Offset != nil && *filters.Offset < 0 {
+	if filters.Offset < 0 {
 		return nil, errors.New("query offset must not be negative")
 	}
 
 	users := make([]model.User, 0)
 
-	cond, namedArgs := buildConditions(filters)
+	cond, namedArgs := buildManyConditions(filters)
 
 	sqlStr := `
 		SELECT id, email, first_name, last_name, role, created_at, updated_at
 		FROM ` + r.tableName + ` WHERE
 	` + cond + " ORDER BY id ASC"
 
-	if filters.Limit != nil {
-		namedArgs["limit"] = *filters.Limit
-		sqlStr += " LIMIT @limit"
-	}
+	namedArgs["limit"] = filters.Limit
+	sqlStr += " LIMIT @limit"
 
-	if filters.Offset != nil {
-		namedArgs["offset"] = *filters.Offset
-		sqlStr += " OFFSET @offset"
-	}
+	namedArgs["offset"] = filters.Offset
+	sqlStr += " OFFSET @offset"
 
 	sqlStr += ";"
 
@@ -235,9 +233,13 @@ func (r UserRepository) GetPassword(ctx context.Context, id int) (string, error)
 }
 
 // helpers
-func buildConditions(filters Filters) (string, pgx.NamedArgs) {
+func buildOneConditions(filters *FilterOne) (string, pgx.NamedArgs) {
 	cond := "TRUE"
 	namedArgs := make(pgx.NamedArgs)
+
+	if filters == nil {
+		return cond, namedArgs
+	}
 
 	if filters.Id != nil {
 		namedArgs["id"] = *filters.Id
@@ -247,6 +249,17 @@ func buildConditions(filters Filters) (string, pgx.NamedArgs) {
 	if filters.Email != nil {
 		namedArgs["email"] = *filters.Email
 		cond += " AND email = @email"
+	}
+
+	return cond, namedArgs
+}
+
+func buildManyConditions(filters *FilterMany) (string, pgx.NamedArgs) {
+	cond := "TRUE"
+	namedArgs := make(pgx.NamedArgs)
+
+	if filters == nil {
+		return cond, namedArgs
 	}
 
 	if filters.FirstName != nil {

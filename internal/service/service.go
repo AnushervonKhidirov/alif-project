@@ -57,8 +57,8 @@ type TokenGenerator interface {
 
 // User
 type User interface {
-	GetOne(ctx context.Context, filter userDb.Filters) (*model.User, error)
-	GetMany(ctx context.Context, filter userDb.Filters) ([]model.User, error)
+	GetOne(ctx context.Context, filter *userDb.FilterOne) (*model.User, error)
+	GetMany(ctx context.Context, filter *userDb.FilterMany) ([]model.User, error)
 	Create(ctx context.Context, data dto.CreateUser) (*model.User, error)
 	Update(ctx context.Context, id int, data dto.UpdateUser) (*model.User, error)
 	ChangePassword(ctx context.Context, id int, data dto.ChangePassword) error

@@ -1,6 +1,32 @@
 package dto
 
-import "pet/pkg/optional"
+import (
+	"pet/internal/model"
+	"pet/pkg/optional"
+	"time"
+)
+
+type UserResponse struct {
+	Id        int        `json:"id"`
+	Email     string     `json:"email"`
+	FirstName string     `json:"firstName"`
+	LastName  *string    `json:"lastName"`
+	Role      model.Role `json:"role"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+}
+
+func ToUserResponse(user *model.User) UserResponse {
+	return UserResponse{
+		Id:        user.Id,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Role:      user.Role,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+}
 
 type CreateUser struct {
 	Email     string          `json:"email" binding:"required,email"`
