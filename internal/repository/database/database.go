@@ -5,6 +5,7 @@ import (
 	"pet/internal/config"
 	"pet/internal/model"
 	"pet/internal/repository/database/breed"
+	pettype "pet/internal/repository/database/pet_type"
 	"pet/internal/repository/database/user"
 
 	"github.com/jackc/pgx/v5"
@@ -29,6 +30,8 @@ func (db *Database) Connect(ctx context.Context) (*pgx.Conn, error) {
 	}
 
 	db.UserRepository = user.NewRepository(conn)
+	db.PetTypeRepository = pettype.NewRepository(conn)
+	db.BreedRepository = breed.NewRepository(conn)
 
 	return conn, nil
 }
