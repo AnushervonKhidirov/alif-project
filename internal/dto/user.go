@@ -15,5 +15,6 @@ type UpdateUser struct {
 }
 
 type ChangePassword struct {
-	Password string `json:"password" binding:"required,min=6"`
+	OldPassword string `json:"oldPassword" binding:"required,min=6"`
+	NewPassword string `json:"NewPassword" binding:"required,min=6"`
 }
