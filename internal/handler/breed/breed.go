@@ -67,7 +67,7 @@ func (h Handler) Create(c *gin.Context) {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == pgerrcode.UniqueViolation {
-				response.Fail(c, http.StatusConflict, errors.New("pet type already exists"))
+				response.Fail(c, http.StatusConflict, errors.New("breed already exists"))
 				return
 			}
 		}
@@ -100,7 +100,7 @@ func (h Handler) Update(c *gin.Context) {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == pgerrcode.UniqueViolation {
-				response.Fail(c, http.StatusConflict, errors.New("pet type already exists"))
+				response.Fail(c, http.StatusConflict, errors.New("breed already exists"))
 				return
 			}
 		}
