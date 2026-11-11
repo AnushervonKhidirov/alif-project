@@ -42,6 +42,7 @@ type UserRepo interface {
 	Create(ctx context.Context, createArgs user.CreateUserArgs) (*model.User, error)
 	Update(ctx context.Context, id int, updateArgs user.UpdateUserArgs) (*model.User, error)
 	Delete(ctx context.Context, id int) error
+	GetPassword(ctx context.Context, id int) (string, error)
 }
 
 type PetTypeRepo interface {
