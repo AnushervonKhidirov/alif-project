@@ -227,6 +227,13 @@ func (r UserRepository) Delete(ctx context.Context, id int) error {
 	return err
 }
 
+func (r UserRepository) GetPassword(ctx context.Context, id int) (string, error) {
+	var password string
+	sqlStr := "SELECT password FROM " + r.tableName + "WHERE id = $1;"
+	err := r.conn.QueryRow(ctx, sqlStr, id).Scan(&password)
+	return password, err
+}
+
 // helpers
 func buildConditions(filters Filters) (string, pgx.NamedArgs) {
 	cond := "TRUE"
