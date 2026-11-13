@@ -83,7 +83,7 @@ func (h Handler) GetMany(c *gin.Context) {
 		return
 	}
 
-	var usersResponse = make([]dto.UserResponse, len(users))
+	var usersResponse = make([]dto.UserResponse, 0, len(users))
 	for _, user := range users {
 		usersResponse = append(usersResponse, dto.ToUserResponse(&user))
 	}
