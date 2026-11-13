@@ -32,7 +32,7 @@ func (h Handler) GetOne(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.GetOne(ctx, &user.FilterOne{Id: &id})
+	user, err := h.service.GetOne(ctx, user.FilterOne{Id: &id})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			response.Fail(c, http.StatusNotFound, errors.New("user not found"))
@@ -64,7 +64,7 @@ func (h Handler) GetMany(c *gin.Context) {
 		return
 	}
 
-	filters := &user.FilterMany{
+	filters := user.FilterMany{
 		Limit:  limit,
 		Offset: offset,
 	}
@@ -100,7 +100,7 @@ func (h Handler) GetMe(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.GetOne(ctx, &user.FilterOne{Id: &id})
+	user, err := h.service.GetOne(ctx, user.FilterOne{Id: &id})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			response.Fail(c, http.StatusNotFound, errors.New("user not found"))
