@@ -7,9 +7,11 @@ import (
 	"pet/internal/model"
 	"pet/internal/repository/cache"
 	"pet/internal/repository/database"
+	petDb "pet/internal/repository/database/pet"
 	userDb "pet/internal/repository/database/user"
 	"pet/internal/service/breed"
-	pettype "pet/internal/service/pet_type"
+	"pet/internal/service/pet"
+	petType "pet/internal/service/pet_type"
 	"pet/internal/service/token"
 	"pet/internal/service/user"
 )
@@ -26,7 +28,8 @@ func New(cfg *config.AppConf, r *database.Database, cache *cache.Cache) *Service
 	return &Service{
 		User:    user.NewService(r.UserRepository),
 		Token:   token.NewService(&cfg.Token, cache.Token),
-		PetType: pettype.NewService(r.PetTypeRepository),
+		Pet:     pet.NewService(r.PetRepository),
+		PetType: petType.NewService(r.PetTypeRepository),
 		Breed:   breed.NewService(r.BreedRepository),
 	}
 }
@@ -56,8 +59,8 @@ type TokenGenerator interface {
 
 // User
 type User interface {
-	GetOne(ctx context.Context, filter *userDb.FilterOne) (*model.User, error)
-	GetMany(ctx context.Context, filter *userDb.FilterMany) ([]model.User, error)
+	GetOne(ctx context.Context, filters userDb.FilterOne) (*model.User, error)
+	GetMany(ctx context.Context, filters userDb.FilterMany) ([]model.User, error)
 	Create(ctx context.Context, data dto.CreateUser) (*model.User, error)
 	Update(ctx context.Context, id int, data dto.UpdateUser) (*model.User, error)
 	ChangePassword(ctx context.Context, id int, data dto.ChangePassword) error
@@ -65,7 +68,15 @@ type User interface {
 }
 
 // Pet
-type Pet interface{}
+type Pet interface {
+	GetOne(ctx context.Context, id int) (*model.Pet, error)
+	GetMany(ctx context.Context, filters petDb.FilterMany) ([]model.Pet, error)
+	CreateMy(ctx context.Context, userId int, data dto.CreatePet) (*model.Pet, error)
+	UpdateMy(ctx context.Context, filters petDb.FilterOne, data dto.UpdatePet) (*model.Pet, error)
+	DeleteMy(ctx context.Context, filters petDb.FilterOne) error
+	MakeLostMy(ctx context.Context, filters petDb.FilterOne) error
+	UnmakeLostMy(ctx context.Context, filters petDb.FilterOne) error
+}
 
 // PetType
 type PetType interface {
