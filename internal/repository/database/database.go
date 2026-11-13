@@ -5,6 +5,7 @@ import (
 	"pet/internal/config"
 	"pet/internal/model"
 	"pet/internal/repository/database/breed"
+	"pet/internal/repository/database/pet"
 	pettype "pet/internal/repository/database/pet_type"
 	"pet/internal/repository/database/user"
 
@@ -14,6 +15,7 @@ import (
 type Database struct {
 	cfg               *config.Database
 	UserRepository    UserRepo
+	PetRepository     PetRepo
 	PetTypeRepository PetTypeRepo
 	BreedRepository   BreedRepo
 }
@@ -30,6 +32,7 @@ func (db *Database) Connect(ctx context.Context) (*pgx.Conn, error) {
 	}
 
 	db.UserRepository = user.NewRepository(conn)
+	db.PetRepository = pet.NewRepository(conn)
 	db.PetTypeRepository = pettype.NewRepository(conn)
 	db.BreedRepository = breed.NewRepository(conn)
 
@@ -37,12 +40,20 @@ func (db *Database) Connect(ctx context.Context) (*pgx.Conn, error) {
 }
 
 type UserRepo interface {
-	GetOne(ctx context.Context, filters *user.FilterOne) (*model.User, error)
-	GetMany(ctx context.Context, filters *user.FilterMany) ([]model.User, error)
+	GetOne(ctx context.Context, filters user.FilterOne) (*model.User, error)
+	GetMany(ctx context.Context, filters user.FilterMany) ([]model.User, error)
 	Create(ctx context.Context, createArgs user.CreateUserArgs) (*model.User, error)
 	Update(ctx context.Context, id int, updateArgs user.UpdateUserArgs) (*model.User, error)
 	Delete(ctx context.Context, id int) error
 	GetPassword(ctx context.Context, id int) (string, error)
+}
+
+type PetRepo interface {
+	GetOne(ctx context.Context, id int) (*model.Pet, error)
+	GetMany(ctx context.Context, filters pet.FilterMany) ([]model.Pet, error)
+	Create(ctx context.Context, createArgs pet.CreateArgs) (*model.Pet, error)
+	Update(ctx context.Context, filters pet.FilterOne, updateArgs pet.UpdateArgs) (*model.Pet, error)
+	Delete(ctx context.Context, filters pet.FilterOne) error
 }
 
 type PetTypeRepo interface {
