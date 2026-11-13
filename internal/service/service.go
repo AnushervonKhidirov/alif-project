@@ -15,12 +15,11 @@ import (
 )
 
 type Service struct {
-	User      User
-	Token     Token
-	Pet       Pet
-	PetType   PetType
-	Breed     Breed
-	VetClinic VetClinic
+	User    User
+	Token   Token
+	Pet     Pet
+	PetType PetType
+	Breed   Breed
 }
 
 func New(cfg *config.AppConf, r *database.Database, cache *cache.Cache) *Service {
@@ -83,14 +82,5 @@ type Breed interface {
 	GetMany(ctx context.Context) ([]model.Breed, error)
 	Create(ctx context.Context, data dto.CreateBreed) (*model.Breed, error)
 	Update(ctx context.Context, id int, data dto.UpdateBreed) (*model.Breed, error)
-	Delete(ctx context.Context, id int) error
-}
-
-// VetClinic
-type VetClinic interface {
-	GetOne(ctx context.Context, id int) (*model.VetClinic, error)
-	GetMany(ctx context.Context) ([]model.VetClinic, error)
-	Create(ctx context.Context) (*model.VetClinic, error)
-	Update(ctx context.Context, id int) (*model.VetClinic, error)
 	Delete(ctx context.Context, id int) error
 }

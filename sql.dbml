@@ -40,15 +40,6 @@ Table breeds {
 	pet_type_id int [not null]
 }
 
-Table vet_clinics {
-	id int [pk, increment]
-	name varchar(30) [not null]
-	about text
-	address varchar(255) [not null]
-	created_at timestamp
-	updated_at timestamp
-}
-
 Enum role {
 	ADMIN
 	USER
