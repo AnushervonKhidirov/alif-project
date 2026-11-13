@@ -14,7 +14,7 @@ import (
 
 const selectFields = "id, user_id, name, about, gender, birthday, microchip_id, pet_type_id, breed_id, lost, created_at, updated_at"
 
-type Filters struct {
+type FilterMany struct {
 	UserId      *int
 	Gender      *model.Gender
 	MicrochipId *string
@@ -25,6 +25,11 @@ type Filters struct {
 	Offset      int
 }
 
+type FilterOne struct {
+	Id     int
+	UserId *int
+}
+
 type CreateArgs struct {
 	UserId      int
 	Name        string
@@ -32,7 +37,6 @@ type CreateArgs struct {
 	Gender      *model.Gender
 	Birthday    *time.Time
 	MicrochipId *string
-	Lost        bool
 	PetTypeId   int
 	BreedId     *int
 }
@@ -43,9 +47,9 @@ type UpdateArgs struct {
 	Gender      nullable.Nullable[model.Gender]
 	Birthday    nullable.Time
 	MicrochipId nullable.String
-	Lost        nullable.Bool
 	PetTypeId   nullable.Int
 	BreedId     nullable.Int
+	Lost        nullable.Bool
 }
 
 type PetRepository struct {
@@ -81,7 +85,7 @@ func (r PetRepository) GetOne(ctx context.Context, id int) (*model.Pet, error) {
 	return &pet, nil
 }
 
-func (r PetRepository) GetMany(ctx context.Context, filters *Filters) ([]model.Pet, error) {
+func (r PetRepository) GetMany(ctx context.Context, filters FilterMany) ([]model.Pet, error) {
 	if filters.Limit < 0 {
 		return nil, errors.New("query limit must not be negative")
 	}
@@ -178,12 +182,19 @@ func (r PetRepository) Create(ctx context.Context, createArgs CreateArgs) (*mode
 	return &pet, nil
 }
 
-func (r PetRepository) Update(ctx context.Context, id int, updateArgs UpdateArgs) (*model.Pet, error) {
+func (r PetRepository) Update(ctx context.Context, filters FilterOne, updateArgs UpdateArgs) (*model.Pet, error) {
 	var pet model.Pet
 
 	setFields := make([]string, 0)
 	namedArgs := make(pgx.NamedArgs)
-	namedArgs["id"] = id
+	namedArgs["id"] = filters.Id
+
+	cond := "id = @id"
+
+	if filters.UserId != nil {
+		namedArgs["userId"] = filters.UserId
+		cond += " AND user_id = @userId"
+	}
 
 	if updateArgs.Name.IsSet {
 		if updateArgs.Name.Value == nil {
@@ -209,10 +220,6 @@ func (r PetRepository) Update(ctx context.Context, id int, updateArgs UpdateArgs
 		namedArgs["microchipId"] = updateArgs.MicrochipId.Value
 	}
 
-	if updateArgs.Lost.IsSet {
-		namedArgs["lost"] = updateArgs.Lost.Value
-	}
-
 	if updateArgs.PetTypeId.IsSet {
 		if updateArgs.PetTypeId.Value == nil {
 			return nil, errors.New("pet type id should not be null")
@@ -229,7 +236,7 @@ func (r PetRepository) Update(ctx context.Context, id int, updateArgs UpdateArgs
 
 	sqlStr := `
 		UPDATE ` + r.tableName + ` SET ` + strings.Join(setFields, ", ") + `
-		WHERE id = @id
+		WHERE ` + cond + `
 		RETURNING` + selectFields + `;
 	`
 	err := r.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
@@ -253,19 +260,24 @@ func (r PetRepository) Update(ctx context.Context, id int, updateArgs UpdateArgs
 	return &pet, nil
 }
 
-func (r PetRepository) Delete(ctx context.Context, id int) error {
-	sqlStr := "DELETE FROM " + r.tableName + " WHERE id = $1;"
-	_, err := r.conn.Exec(ctx, sqlStr, id)
+func (r PetRepository) Delete(ctx context.Context, filters FilterOne) error {
+	namedArgs := make(pgx.NamedArgs)
+	namedArgs["id"] = filters.Id
+	cond := "id = @id"
+
+	if filters.UserId != nil {
+		namedArgs["userId"] = filters.UserId
+		cond += " AND user_id = @userId"
+	}
+
+	sqlStr := "DELETE FROM " + r.tableName + " WHERE " + cond + ";"
+	_, err := r.conn.Exec(ctx, sqlStr, namedArgs)
 	return err
 }
 
-func buildManyConditions(filters *Filters) (string, pgx.NamedArgs) {
+func buildManyConditions(filters FilterMany) (string, pgx.NamedArgs) {
 	cond := "TRUE"
 	namedArgs := make(pgx.NamedArgs)
-
-	if filters == nil {
-		return cond, namedArgs
-	}
 
 	if filters.UserId != nil {
 		namedArgs["userId"] = *filters.UserId

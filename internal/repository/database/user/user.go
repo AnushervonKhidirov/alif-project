@@ -45,7 +45,7 @@ func NewRepository(c *pgx.Conn) *UserRepository {
 	return &UserRepository{conn: c, tableName: constant.TableUser}
 }
 
-func (r UserRepository) GetOne(ctx context.Context, filters *FilterOne) (*model.User, error) {
+func (r UserRepository) GetOne(ctx context.Context, filters FilterOne) (*model.User, error) {
 	var user model.User
 
 	cond, namedArgs := buildOneConditions(filters)
@@ -72,7 +72,7 @@ func (r UserRepository) GetOne(ctx context.Context, filters *FilterOne) (*model.
 	return &user, nil
 }
 
-func (r UserRepository) GetMany(ctx context.Context, filters *FilterMany) ([]model.User, error) {
+func (r UserRepository) GetMany(ctx context.Context, filters FilterMany) ([]model.User, error) {
 	if filters.Limit < 0 {
 		return nil, errors.New("query limit must not be negative")
 	}
@@ -234,13 +234,9 @@ func (r UserRepository) GetPassword(ctx context.Context, id int) (string, error)
 }
 
 // helpers
-func buildOneConditions(filters *FilterOne) (string, pgx.NamedArgs) {
+func buildOneConditions(filters FilterOne) (string, pgx.NamedArgs) {
 	cond := "TRUE"
 	namedArgs := make(pgx.NamedArgs)
-
-	if filters == nil {
-		return cond, namedArgs
-	}
 
 	if filters.Id != nil {
 		namedArgs["id"] = *filters.Id
@@ -255,13 +251,9 @@ func buildOneConditions(filters *FilterOne) (string, pgx.NamedArgs) {
 	return cond, namedArgs
 }
 
-func buildManyConditions(filters *FilterMany) (string, pgx.NamedArgs) {
+func buildManyConditions(filters FilterMany) (string, pgx.NamedArgs) {
 	cond := "TRUE"
 	namedArgs := make(pgx.NamedArgs)
-
-	if filters == nil {
-		return cond, namedArgs
-	}
 
 	if filters.FirstName != nil {
 		namedArgs["firstName"] = *filters.FirstName
