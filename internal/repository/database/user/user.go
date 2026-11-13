@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"pet/internal/model"
-	"pet/pkg/optional"
+	"pet/pkg/nullable"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -26,13 +26,13 @@ type CreateUserArgs struct {
 	Email        string
 	PasswordHash string
 	FirstName    string
-	LastName     optional.String
+	LastName     nullable.String
 }
 
 type UpdateUserArgs struct {
-	FirstName    optional.String
-	LastName     optional.String
-	PasswordHash optional.String
+	FirstName    nullable.String
+	LastName     nullable.String
+	PasswordHash nullable.String
 }
 
 type UserRepository struct {

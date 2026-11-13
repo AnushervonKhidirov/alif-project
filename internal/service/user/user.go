@@ -7,7 +7,7 @@ import (
 	"pet/internal/model"
 	"pet/internal/repository/database"
 	userRepo "pet/internal/repository/database/user"
-	"pet/pkg/optional"
+	"pet/pkg/nullable"
 	"pet/pkg/password"
 )
 
@@ -87,7 +87,7 @@ func (s UserService) ChangePassword(ctx context.Context, id int, data dto.Change
 		return err
 	}
 
-	passwordHash := optional.String{Value: &newPasswordHash, IsSet: true}
+	passwordHash := nullable.String{Value: &newPasswordHash, IsSet: true}
 	_, err = s.repo.Update(ctx, id, userRepo.UpdateUserArgs{PasswordHash: passwordHash})
 	return err
 }

@@ -2,7 +2,7 @@ package dto
 
 import (
 	"pet/internal/model"
-	"pet/pkg/optional"
+	"pet/pkg/nullable"
 	"time"
 )
 
@@ -32,12 +32,12 @@ type CreateUser struct {
 	Email     string          `json:"email" binding:"required,email"`
 	Password  string          `json:"password" binding:"required,min=6"`
 	FirstName string          `json:"firstName" binding:"required"`
-	LastName  optional.String `json:"lastName"`
+	LastName  nullable.String `json:"lastName"`
 }
 
 type UpdateUser struct {
-	FirstName optional.String `json:"firstName"`
-	LastName  optional.String `json:"lastName"`
+	FirstName nullable.String `json:"firstName"`
+	LastName  nullable.String `json:"lastName"`
 }
 
 type ChangePassword struct {
