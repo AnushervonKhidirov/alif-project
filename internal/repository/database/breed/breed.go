@@ -67,10 +67,10 @@ func (r BreedRepository) GetMany(ctx context.Context) ([]model.Breed, error) {
 	return breeds, nil
 }
 
-func (r BreedRepository) Create(ctx context.Context, breedArgs CreateBreedArgs) (*model.Breed, error) {
+func (r BreedRepository) Create(ctx context.Context, createArgs CreateBreedArgs) (*model.Breed, error) {
 	var breed model.Breed
 	sqlStr := "INSERT INTO " + r.tableName + " (value, pet_type_id) VALUES ($1, $2) RETURNING id, value, pet_type_id;"
-	err := r.conn.QueryRow(ctx, sqlStr, breedArgs.Value, breedArgs.PetTypeId).Scan(&breed.Id, &breed.Value, &breed.PetTypeId)
+	err := r.conn.QueryRow(ctx, sqlStr, createArgs.Value, createArgs.PetTypeId).Scan(&breed.Id, &breed.Value, &breed.PetTypeId)
 	if err != nil {
 		return nil, err
 	}
@@ -78,13 +78,13 @@ func (r BreedRepository) Create(ctx context.Context, breedArgs CreateBreedArgs) 
 	return &breed, nil
 }
 
-func (r BreedRepository) Update(ctx context.Context, breedId int, updateBreedArgs UpdateBreedArgs) (*model.Breed, error) {
+func (r BreedRepository) Update(ctx context.Context, id int, updateArgs UpdateBreedArgs) (*model.Breed, error) {
 	var breed model.Breed
 
 	namedArgs := make(pgx.NamedArgs)
-	namedArgs["id"] = breedId
-	namedArgs["value"] = updateBreedArgs.Value
-	namedArgs["petTypeId"] = updateBreedArgs.PetTypeId
+	namedArgs["id"] = id
+	namedArgs["value"] = updateArgs.Value
+	namedArgs["petTypeId"] = updateArgs.PetTypeId
 
 	sqlStr := `
 		UPDATE ` + r.tableName + ` SET
@@ -101,8 +101,8 @@ func (r BreedRepository) Update(ctx context.Context, breedId int, updateBreedArg
 	return &breed, nil
 }
 
-func (r BreedRepository) Delete(ctx context.Context, petTypeId int) error {
+func (r BreedRepository) Delete(ctx context.Context, id int) error {
 	sqlStr := "DELETE FROM " + r.tableName + " WHERE id = $1;"
-	_, err := r.conn.Exec(ctx, sqlStr, petTypeId)
+	_, err := r.conn.Exec(ctx, sqlStr, id)
 	return err
 }
