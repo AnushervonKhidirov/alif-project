@@ -263,13 +263,13 @@ func buildManyConditions(filters *FilterMany) (string, pgx.NamedArgs) {
 	}
 
 	if filters.FirstName != nil {
-		namedArgs["first_name"] = *filters.FirstName
-		cond += " AND first_name = @first_name"
+		namedArgs["firstName"] = *filters.FirstName
+		cond += " AND first_name = @firstName"
 	}
 
 	if filters.LastName != nil {
-		namedArgs["last_name"] = *filters.LastName
-		cond += " AND last_name = @last_name"
+		namedArgs["lastName"] = *filters.LastName
+		cond += " AND last_name = @lastName"
 	}
 
 	return cond, namedArgs
