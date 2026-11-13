@@ -2,6 +2,7 @@ package breed
 
 import (
 	"context"
+	"pet/internal/constant"
 	"pet/internal/model"
 
 	"github.com/jackc/pgx/v5"
@@ -23,7 +24,7 @@ type BreedRepository struct {
 }
 
 func NewRepository(c *pgx.Conn) *BreedRepository {
-	return &BreedRepository{conn: c, tableName: "breeds"}
+	return &BreedRepository{conn: c, tableName: constant.TableBreed}
 }
 
 func (r BreedRepository) GetOne(ctx context.Context, id int) (*model.Breed, error) {

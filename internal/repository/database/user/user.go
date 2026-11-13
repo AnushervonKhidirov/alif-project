@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"pet/internal/constant"
 	"pet/internal/model"
 	"pet/pkg/nullable"
 	"strings"
@@ -41,7 +42,7 @@ type UserRepository struct {
 }
 
 func NewRepository(c *pgx.Conn) *UserRepository {
-	return &UserRepository{conn: c, tableName: "users"}
+	return &UserRepository{conn: c, tableName: constant.TableUser}
 }
 
 func (r UserRepository) GetOne(ctx context.Context, filters *FilterOne) (*model.User, error) {

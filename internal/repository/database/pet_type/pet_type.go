@@ -2,6 +2,7 @@ package pettype
 
 import (
 	"context"
+	"pet/internal/constant"
 	"pet/internal/model"
 
 	"github.com/jackc/pgx/v5"
@@ -13,7 +14,7 @@ type PetTypeRepository struct {
 }
 
 func NewRepository(c *pgx.Conn) *PetTypeRepository {
-	return &PetTypeRepository{conn: c, tableName: "pet_types"}
+	return &PetTypeRepository{conn: c, tableName: constant.TablePetType}
 }
 
 func (r PetTypeRepository) GetOne(ctx context.Context, id int) (*model.PetType, error) {

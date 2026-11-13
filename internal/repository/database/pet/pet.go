@@ -3,6 +3,7 @@ package pet
 import (
 	"context"
 	"errors"
+	"pet/internal/constant"
 	"pet/internal/model"
 	"pet/pkg/nullable"
 	"strings"
@@ -53,7 +54,7 @@ type PetRepository struct {
 }
 
 func NewRepository(c *pgx.Conn) *PetRepository {
-	return &PetRepository{conn: c, tableName: "pets"}
+	return &PetRepository{conn: c, tableName: constant.TablePet}
 }
 
 func (r PetRepository) GetOne(ctx context.Context, id int) (*model.Pet, error) {
