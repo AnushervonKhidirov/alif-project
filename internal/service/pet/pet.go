@@ -35,7 +35,7 @@ func (s PetService) GetMany(ctx context.Context, filters petDb.FilterMany) ([]mo
 	return pets, err
 }
 
-func (s PetService) CreateMy(ctx context.Context, userId int, data dto.CreatePet) (*model.Pet, error) {
+func (s PetService) Create(ctx context.Context, data dto.CreatePet) (*model.Pet, error) {
 	createArgs := petDb.CreateArgs{
 		UserId:      data.UserId,
 		Name:        data.Name,
@@ -55,7 +55,7 @@ func (s PetService) CreateMy(ctx context.Context, userId int, data dto.CreatePet
 	return pet, nil
 }
 
-func (s PetService) UpdateMy(ctx context.Context, filter petDb.FilterOne, data dto.UpdatePet) (*model.Pet, error) {
+func (s PetService) Update(ctx context.Context, filter petDb.FilterOne, data dto.UpdatePet) (*model.Pet, error) {
 	updateArgs := petDb.UpdateArgs{
 		Name:        data.Name,
 		About:       data.About,
@@ -74,12 +74,12 @@ func (s PetService) UpdateMy(ctx context.Context, filter petDb.FilterOne, data d
 	return pet, nil
 }
 
-func (s PetService) DeleteMy(ctx context.Context, filter petDb.FilterOne) error {
+func (s PetService) Delete(ctx context.Context, filter petDb.FilterOne) error {
 	err := s.repo.Delete(ctx, filter)
 	return err
 }
 
-func (s PetService) MakeLostMy(ctx context.Context, filter petDb.FilterOne) error {
+func (s PetService) MakeLost(ctx context.Context, filter petDb.FilterOne) error {
 	lost := true
 	updateArgs := petDb.UpdateArgs{
 		Lost: nullable.Bool{Value: &lost, IsSet: true},
@@ -89,7 +89,7 @@ func (s PetService) MakeLostMy(ctx context.Context, filter petDb.FilterOne) erro
 	return err
 }
 
-func (s PetService) UnmakeLostMy(ctx context.Context, filter petDb.FilterOne) error {
+func (s PetService) UnmakeLost(ctx context.Context, filter petDb.FilterOne) error {
 	lost := false
 	updateArgs := petDb.UpdateArgs{
 		Lost: nullable.Bool{Value: &lost, IsSet: true},

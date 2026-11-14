@@ -71,11 +71,11 @@ type User interface {
 type Pet interface {
 	GetOne(ctx context.Context, id int) (*model.Pet, error)
 	GetMany(ctx context.Context, filters petDb.FilterMany) ([]model.Pet, error)
-	CreateMy(ctx context.Context, userId int, data dto.CreatePet) (*model.Pet, error)
-	UpdateMy(ctx context.Context, filters petDb.FilterOne, data dto.UpdatePet) (*model.Pet, error)
-	DeleteMy(ctx context.Context, filters petDb.FilterOne) error
-	MakeLostMy(ctx context.Context, filters petDb.FilterOne) error
-	UnmakeLostMy(ctx context.Context, filters petDb.FilterOne) error
+	Create(ctx context.Context, data dto.CreatePet) (*model.Pet, error)
+	Update(ctx context.Context, filters petDb.FilterOne, data dto.UpdatePet) (*model.Pet, error)
+	Delete(ctx context.Context, filters petDb.FilterOne) error
+	MakeLost(ctx context.Context, filters petDb.FilterOne) error
+	UnmakeLost(ctx context.Context, filters petDb.FilterOne) error
 }
 
 // PetType
