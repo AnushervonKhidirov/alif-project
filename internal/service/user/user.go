@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"pet/internal/dto"
+	"pet/internal/dto/query"
 	"pet/internal/model"
 	"pet/internal/repository/database"
 	userRepo "pet/internal/repository/database/user"
@@ -28,8 +29,16 @@ func (s UserService) GetOne(ctx context.Context, filters userRepo.FilterOne) (*m
 	return user, nil
 }
 
-func (s UserService) GetMany(ctx context.Context, filters userRepo.FilterMany) ([]model.User, error) {
-	users, err := s.repo.GetMany(ctx, filters)
+func (s UserService) GetMany(ctx context.Context, filters query.UserFilterMany) ([]model.User, error) {
+	dbFilters := userRepo.FilterMany{
+		FirstName: filters.FirstName,
+		LastName:  filters.LastName,
+
+		Limit:  filters.Limit,
+		Offset: filters.Offset,
+	}
+
+	users, err := s.repo.GetMany(ctx, dbFilters)
 	if err != nil {
 		return nil, err
 	}

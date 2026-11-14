@@ -3,6 +3,7 @@ package pet
 import (
 	"context"
 	"pet/internal/dto"
+	"pet/internal/dto/query"
 	"pet/internal/model"
 	"pet/internal/repository/database"
 	petDb "pet/internal/repository/database/pet"
@@ -26,8 +27,20 @@ func (s PetService) GetOne(ctx context.Context, id int) (*model.Pet, error) {
 	return pet, nil
 }
 
-func (s PetService) GetMany(ctx context.Context, filters petDb.FilterMany) ([]model.Pet, error) {
-	pets, err := s.repo.GetMany(ctx, filters)
+func (s PetService) GetMany(ctx context.Context, filters query.PetFilterMany) ([]model.Pet, error) {
+	dbFilters := petDb.FilterMany{
+		UserId:      filters.UserId,
+		Gender:      filters.Gender,
+		MicrochipId: filters.MicrochipId,
+		Lost:        filters.Lost,
+		PetTypeId:   filters.PetTypeId,
+		BreedId:     filters.BreedId,
+
+		Limit:  filters.Limit,
+		Offset: filters.Offset,
+	}
+
+	pets, err := s.repo.GetMany(ctx, dbFilters)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +68,12 @@ func (s PetService) Create(ctx context.Context, data dto.CreatePet) (*model.Pet,
 	return pet, nil
 }
 
-func (s PetService) Update(ctx context.Context, filter petDb.FilterOne, data dto.UpdatePet) (*model.Pet, error) {
+func (s PetService) Update(ctx context.Context, id int, userId *int, data dto.UpdatePet) (*model.Pet, error) {
+	filters := petDb.FilterOne{
+		Id:     id,
+		UserId: userId,
+	}
+
 	updateArgs := petDb.UpdateArgs{
 		Name:        data.Name,
 		About:       data.About,
@@ -66,7 +84,7 @@ func (s PetService) Update(ctx context.Context, filter petDb.FilterOne, data dto
 		BreedId:     data.BreedId,
 	}
 
-	pet, err := s.repo.Update(ctx, filter, updateArgs)
+	pet, err := s.repo.Update(ctx, filters, updateArgs)
 	if err != nil {
 		return nil, err
 	}
@@ -74,27 +92,42 @@ func (s PetService) Update(ctx context.Context, filter petDb.FilterOne, data dto
 	return pet, nil
 }
 
-func (s PetService) Delete(ctx context.Context, filter petDb.FilterOne) error {
-	err := s.repo.Delete(ctx, filter)
+func (s PetService) Delete(ctx context.Context, id int, userId *int) error {
+	filters := petDb.FilterOne{
+		Id:     id,
+		UserId: userId,
+	}
+
+	err := s.repo.Delete(ctx, filters)
 	return err
 }
 
-func (s PetService) MakeLost(ctx context.Context, filter petDb.FilterOne) error {
+func (s PetService) MakeLost(ctx context.Context, id int, userId *int) error {
+	filters := petDb.FilterOne{
+		Id:     id,
+		UserId: userId,
+	}
+
 	lost := true
 	updateArgs := petDb.UpdateArgs{
 		Lost: nullable.Bool{Value: &lost, IsSet: true},
 	}
 
-	_, err := s.repo.Update(ctx, filter, updateArgs)
+	_, err := s.repo.Update(ctx, filters, updateArgs)
 	return err
 }
 
-func (s PetService) UnmakeLost(ctx context.Context, filter petDb.FilterOne) error {
+func (s PetService) UnmakeLost(ctx context.Context, id int, userId *int) error {
+	filters := petDb.FilterOne{
+		Id:     id,
+		UserId: userId,
+	}
+
 	lost := false
 	updateArgs := petDb.UpdateArgs{
 		Lost: nullable.Bool{Value: &lost, IsSet: true},
 	}
 
-	_, err := s.repo.Update(ctx, filter, updateArgs)
+	_, err := s.repo.Update(ctx, filters, updateArgs)
 	return err
 }

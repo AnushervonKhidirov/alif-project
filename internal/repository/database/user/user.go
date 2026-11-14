@@ -5,7 +5,6 @@ import (
 	"errors"
 	"pet/internal/constant"
 	"pet/internal/model"
-	"pet/pkg/helper/request"
 	"pet/pkg/nullable"
 	"strings"
 
@@ -21,7 +20,8 @@ type FilterMany struct {
 	FirstName *string
 	LastName  *string
 
-	request.Pagination
+	Limit  int
+	Offset int
 }
 
 type CreateUserArgs struct {

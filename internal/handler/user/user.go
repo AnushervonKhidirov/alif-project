@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"pet/internal/dto"
+	"pet/internal/dto/query"
 	"pet/internal/repository/database/user"
 	"pet/internal/service"
 	"pet/pkg/helper/request"
@@ -49,28 +50,14 @@ func (h Handler) GetOne(c *gin.Context) {
 func (h Handler) GetMany(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	firstName, firstNameOk := c.GetQuery("firstName")
-	lastName, lastNameOk := c.GetQuery("lastName")
+	var filterQuery query.UserFilterMany
 
-	pagination, err := request.GetPaginationQuery(c)
+	err := c.ShouldBindQuery(&filterQuery)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 	}
 
-	filters := user.FilterMany{
-		Limit:  pagination.Limit,
-		Offset: pagination.Offset,
-	}
-
-	if firstNameOk {
-		filters.FirstName = &firstName
-	}
-
-	if lastNameOk {
-		filters.LastName = &lastName
-	}
-
-	users, err := h.service.GetMany(ctx, filters)
+	users, err := h.service.GetMany(ctx, filterQuery)
 	if err != nil {
 		response.Fail(c, http.StatusInternalServerError, nil)
 		return

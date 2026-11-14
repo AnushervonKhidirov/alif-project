@@ -5,7 +5,6 @@ import (
 	"errors"
 	"pet/internal/constant"
 	"pet/internal/model"
-	"pet/pkg/helper/request"
 	"pet/pkg/nullable"
 	"strings"
 	"time"
@@ -23,7 +22,8 @@ type FilterMany struct {
 	PetTypeId   *int
 	BreedId     *int
 
-	request.Pagination
+	Limit  int
+	Offset int
 }
 
 type FilterOne struct {

@@ -4,10 +4,10 @@ import (
 	"context"
 	"pet/internal/config"
 	"pet/internal/dto"
+	"pet/internal/dto/query"
 	"pet/internal/model"
 	"pet/internal/repository/cache"
 	"pet/internal/repository/database"
-	petDb "pet/internal/repository/database/pet"
 	userDb "pet/internal/repository/database/user"
 	"pet/internal/service/breed"
 	"pet/internal/service/pet"
@@ -60,7 +60,7 @@ type TokenGenerator interface {
 // User
 type User interface {
 	GetOne(ctx context.Context, filters userDb.FilterOne) (*model.User, error)
-	GetMany(ctx context.Context, filters userDb.FilterMany) ([]model.User, error)
+	GetMany(ctx context.Context, filters query.UserFilterMany) ([]model.User, error)
 	Create(ctx context.Context, data dto.CreateUser) (*model.User, error)
 	Update(ctx context.Context, id int, data dto.UpdateUser) (*model.User, error)
 	ChangePassword(ctx context.Context, id int, data dto.ChangePassword) error
@@ -70,12 +70,12 @@ type User interface {
 // Pet
 type Pet interface {
 	GetOne(ctx context.Context, id int) (*model.Pet, error)
-	GetMany(ctx context.Context, filters petDb.FilterMany) ([]model.Pet, error)
+	GetMany(ctx context.Context, filters query.PetFilterMany) ([]model.Pet, error)
 	Create(ctx context.Context, data dto.CreatePet) (*model.Pet, error)
-	Update(ctx context.Context, filters petDb.FilterOne, data dto.UpdatePet) (*model.Pet, error)
-	Delete(ctx context.Context, filters petDb.FilterOne) error
-	MakeLost(ctx context.Context, filters petDb.FilterOne) error
-	UnmakeLost(ctx context.Context, filters petDb.FilterOne) error
+	Update(ctx context.Context, id int, userId *int, data dto.UpdatePet) (*model.Pet, error)
+	Delete(ctx context.Context, id int, userId *int) error
+	MakeLost(ctx context.Context, id int, userId *int) error
+	UnmakeLost(ctx context.Context, id int, userId *int) error
 }
 
 // PetType
