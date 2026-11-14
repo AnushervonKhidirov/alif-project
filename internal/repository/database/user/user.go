@@ -5,6 +5,7 @@ import (
 	"errors"
 	"pet/internal/constant"
 	"pet/internal/model"
+	"pet/pkg/helper/request"
 	"pet/pkg/nullable"
 	"strings"
 
@@ -19,8 +20,8 @@ type FilterOne struct {
 type FilterMany struct {
 	FirstName *string
 	LastName  *string
-	Limit     int
-	Offset    int
+
+	request.Pagination
 }
 
 type CreateUserArgs struct {
@@ -73,15 +74,7 @@ func (r UserRepository) GetOne(ctx context.Context, filters FilterOne) (*model.U
 }
 
 func (r UserRepository) GetMany(ctx context.Context, filters FilterMany) ([]model.User, error) {
-	if filters.Limit < 0 {
-		return nil, errors.New("query limit must not be negative")
-	}
-	if filters.Offset < 0 {
-		return nil, errors.New("query offset must not be negative")
-	}
-
 	users := make([]model.User, 0)
-
 	cond, namedArgs := buildManyConditions(filters)
 
 	sqlStr := `

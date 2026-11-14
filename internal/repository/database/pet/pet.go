@@ -5,6 +5,7 @@ import (
 	"errors"
 	"pet/internal/constant"
 	"pet/internal/model"
+	"pet/pkg/helper/request"
 	"pet/pkg/nullable"
 	"strings"
 	"time"
@@ -21,8 +22,8 @@ type FilterMany struct {
 	Lost        *bool
 	PetTypeId   *int
 	BreedId     *int
-	Limit       int
-	Offset      int
+
+	request.Pagination
 }
 
 type FilterOne struct {
@@ -86,15 +87,7 @@ func (r PetRepository) GetOne(ctx context.Context, id int) (*model.Pet, error) {
 }
 
 func (r PetRepository) GetMany(ctx context.Context, filters FilterMany) ([]model.Pet, error) {
-	if filters.Limit < 0 {
-		return nil, errors.New("query limit must not be negative")
-	}
-	if filters.Offset < 0 {
-		return nil, errors.New("query offset must not be negative")
-	}
-
 	pets := make([]model.Pet, 0)
-
 	cond, namedArgs := buildManyConditions(filters)
 
 	sqlStr := "SELECT " + selectFields + " FROM " + r.tableName + `
