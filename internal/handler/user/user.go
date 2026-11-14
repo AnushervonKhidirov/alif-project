@@ -6,7 +6,7 @@ import (
 	"pet/internal/dto"
 	"pet/internal/repository/database/user"
 	"pet/internal/service"
-	"pet/pkg/helper"
+	"pet/pkg/helper/request"
 	"pet/pkg/response"
 	"strconv"
 
@@ -52,21 +52,14 @@ func (h Handler) GetMany(c *gin.Context) {
 	firstName, firstNameOk := c.GetQuery("firstName")
 	lastName, lastNameOk := c.GetQuery("lastName")
 
-	limit, err := strconv.Atoi(c.DefaultQuery("take", "15"))
+	pagination, err := request.GetPaginationQuery(c)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
-		return
-	}
-
-	offset, err := strconv.Atoi(c.DefaultQuery("skip", "0"))
-	if err != nil {
-		response.Fail(c, http.StatusBadRequest, err)
-		return
 	}
 
 	filters := user.FilterMany{
-		Limit:  limit,
-		Offset: offset,
+		Limit:  pagination.Limit,
+		Offset: pagination.Offset,
 	}
 
 	if firstNameOk {
@@ -94,7 +87,7 @@ func (h Handler) GetMany(c *gin.Context) {
 func (h Handler) GetMe(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, err := helper.GetUserIdFromRequest(c)
+	id, err := request.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
@@ -117,7 +110,7 @@ func (h Handler) GetMe(c *gin.Context) {
 func (h Handler) UpdateMe(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, err := helper.GetUserIdFromRequest(c)
+	id, err := request.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
@@ -141,7 +134,7 @@ func (h Handler) UpdateMe(c *gin.Context) {
 func (h Handler) DeleteMe(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, err := helper.GetUserIdFromRequest(c)
+	id, err := request.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
@@ -164,7 +157,7 @@ func (h Handler) DeleteMe(c *gin.Context) {
 func (h Handler) ChangePassword(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, err := helper.GetUserIdFromRequest(c)
+	id, err := request.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
