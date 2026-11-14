@@ -12,6 +12,7 @@ const (
 type Pet struct {
 	Id          int
 	UserId      int
+	User        *User
 	Name        string
 	About       *string
 	Gender      *Gender
@@ -19,7 +20,7 @@ type Pet struct {
 	MicrochipId *string
 	Lost        bool
 	PetTypeId   int
-	PetType     PetType
+	PetType     *PetType
 	BreedId     *int
 	Breed       *Breed
 	CreatedAt   time.Time
