@@ -6,6 +6,43 @@ import (
 	"time"
 )
 
+type PetResponse struct {
+	Id          int            `json:"id"`
+	UserId      int            `json:"userId"`
+	User        *model.User    `json:"user,omitempty"`
+	Name        string         `json:"name"`
+	About       *string        `json:"about"`
+	Gender      *model.Gender  `json:"gender"`
+	Birthday    *time.Time     `json:"birthday"`
+	MicrochipId *string        `json:"microchipId"`
+	Lost        bool           `json:"lost"`
+	PetTypeId   int            `json:"petTypeId"`
+	PetType     *model.PetType `json:"petType,omitempty"`
+	BreedId     *int           `json:"breedId"`
+	Breed       *model.Breed   `json:"breed,omitempty"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
+}
+
+func ToPetResponse(pet *model.Pet) PetResponse {
+	return PetResponse{
+		Id:          pet.Id,
+		UserId:      pet.UserId,
+		Name:        pet.Name,
+		About:       pet.About,
+		Gender:      pet.Gender,
+		Birthday:    pet.Birthday,
+		MicrochipId: pet.MicrochipId,
+		Lost:        pet.Lost,
+		PetTypeId:   pet.PetTypeId,
+		PetType:     pet.PetType,
+		BreedId:     pet.BreedId,
+		Breed:       pet.Breed,
+		CreatedAt:   pet.CreatedAt,
+		UpdatedAt:   pet.UpdatedAt,
+	}
+}
+
 type CreatePet struct {
 	UserId      int           `json:"userId" binding:"required"`
 	Name        string        `json:"name" binding:"required"`
