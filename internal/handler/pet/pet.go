@@ -3,8 +3,11 @@ package pet
 import (
 	"errors"
 	"net/http"
+	"pet/internal/dto"
 	"pet/internal/dto/query"
 	"pet/internal/service"
+	"pet/pkg/helper/request"
+	"pet/pkg/nullable"
 	"pet/pkg/response"
 	"strconv"
 
@@ -63,21 +66,174 @@ func (h Handler) GetMany(c *gin.Context) {
 	response.OK(c, http.StatusOK, pets)
 }
 
-func (h Handler) Create(c *gin.Context) {}
+func (h Handler) Create(c *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("userId"))
+	if err != nil {
+		response.Fail(c, http.StatusBadRequest, errors.New("userId param should be a number"))
+		return
+	}
 
-func (h Handler) Update(c *gin.Context) {}
+	h.createPet(c, userId)
+}
 
-func (h Handler) Delete(c *gin.Context) {}
+func (h Handler) Update(c *gin.Context) {
+	h.updatePet(c, nil)
+}
 
-func (h Handler) MakeLost(c *gin.Context) {}
+func (h Handler) Delete(c *gin.Context) {
+	h.deletePet(c, nil)
+}
 
-func (h Handler) UnmakeLost(c *gin.Context) {}
+func (h Handler) MakeLost(c *gin.Context) {
+	h.lostPet(c, nil, true)
+}
+
+func (h Handler) UnmakeLost(c *gin.Context) {
+	h.lostPet(c, nil, false)
+}
 
 // my pet handlers
-func (h Handler) UpdateMy(c *gin.Context) {}
+func (h Handler) CreateMy(c *gin.Context) {
+	userId, err := request.GetUserIdFromRequest(c)
+	if err != nil {
+		response.Fail(c, http.StatusForbidden, err)
+		return
+	}
 
-func (h Handler) DeleteMy(c *gin.Context) {}
+	h.createPet(c, userId)
+}
 
-func (h Handler) MakeLostMy(c *gin.Context) {}
+func (h Handler) UpdateMy(c *gin.Context) {
+	userId, err := request.GetUserIdFromRequest(c)
+	if err != nil {
+		response.Fail(c, http.StatusForbidden, err)
+		return
+	}
 
-func (h Handler) UnmakeLostMy(c *gin.Context) {}
+	h.updatePet(c, &userId)
+}
+
+func (h Handler) DeleteMy(c *gin.Context) {
+	userId, err := request.GetUserIdFromRequest(c)
+	if err != nil {
+		response.Fail(c, http.StatusForbidden, err)
+		return
+	}
+
+	h.deletePet(c, &userId)
+}
+
+func (h Handler) MakeLostMy(c *gin.Context) {
+	userId, err := request.GetUserIdFromRequest(c)
+	if err != nil {
+		response.Fail(c, http.StatusForbidden, err)
+		return
+	}
+
+	h.lostPet(c, &userId, true)
+}
+
+func (h Handler) UnmakeLostMy(c *gin.Context) {
+	userId, err := request.GetUserIdFromRequest(c)
+	if err != nil {
+		response.Fail(c, http.StatusForbidden, err)
+		return
+	}
+
+	h.lostPet(c, &userId, false)
+}
+
+// common handlers
+func (h Handler) createPet(c *gin.Context, userId int) {
+	ctx := c.Request.Context()
+	var data dto.CreatePet
+	if err := c.ShouldBindJSON(&data); err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
+	pet, err := h.service.Create(ctx, userId, data)
+	if err != nil {
+		response.Fail(c, http.StatusInternalServerError, nil)
+		return
+	}
+
+	response.OK(c, http.StatusCreated, pet)
+}
+
+func (h Handler) updatePet(c *gin.Context, userId *int) {
+	ctx := c.Request.Context()
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		response.Fail(c, http.StatusBadRequest, errors.New("id param should be a number"))
+		return
+	}
+
+	var data dto.UpdatePet
+	if err := c.ShouldBindJSON(&data); err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
+	pet, err := h.service.Update(ctx, id, userId, data)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			response.Fail(c, http.StatusNotFound, errors.New("pet not found"))
+			return
+		}
+
+		response.Fail(c, http.StatusInternalServerError, nil)
+		return
+	}
+
+	response.OK(c, http.StatusOK, pet)
+}
+
+func (h Handler) deletePet(c *gin.Context, userId *int) {
+	ctx := c.Request.Context()
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		response.Fail(c, http.StatusBadRequest, errors.New("id param should be a number"))
+		return
+	}
+
+	if err := h.service.Delete(ctx, id, userId); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			response.Fail(c, http.StatusNotFound, errors.New("pet not found"))
+			return
+		}
+
+		response.Fail(c, http.StatusInternalServerError, nil)
+		return
+	}
+
+	response.OK(c, http.StatusOK, nil)
+}
+
+func (h Handler) lostPet(c *gin.Context, userId *int, lost bool) {
+	ctx := c.Request.Context()
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		response.Fail(c, http.StatusBadRequest, errors.New("id param should be a number"))
+		return
+	}
+
+	data := dto.UpdatePet{
+		Lost: nullable.Bool{Value: &lost, IsSet: true},
+	}
+
+	if _, err = h.service.Update(ctx, id, nil, data); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			response.Fail(c, http.StatusNotFound, errors.New("pet not found"))
+			return
+		}
+
+		response.Fail(c, http.StatusInternalServerError, nil)
+		return
+	}
+
+	response.OK(c, http.StatusOK, nil)
+}

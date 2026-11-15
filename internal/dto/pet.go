@@ -44,7 +44,6 @@ func ToPetResponse(pet *model.Pet) PetResponse {
 }
 
 type CreatePet struct {
-	UserId      int           `json:"userId" binding:"required"`
 	Name        string        `json:"name" binding:"required"`
 	About       *string       `json:"about"`
 	Gender      *model.Gender `json:"gender"`
@@ -63,4 +62,5 @@ type UpdatePet struct {
 	MicrochipId nullable.String
 	PetTypeId   nullable.Int
 	BreedId     nullable.Int
+	Lost        nullable.Bool
 }

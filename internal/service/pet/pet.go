@@ -7,7 +7,6 @@ import (
 	"pet/internal/model"
 	"pet/internal/repository/database"
 	petDb "pet/internal/repository/database/pet"
-	"pet/pkg/nullable"
 )
 
 type PetService struct {
@@ -48,9 +47,9 @@ func (s PetService) GetMany(ctx context.Context, filters query.PetFilterMany) ([
 	return pets, err
 }
 
-func (s PetService) Create(ctx context.Context, data dto.CreatePet) (*model.Pet, error) {
+func (s PetService) Create(ctx context.Context, userId int, data dto.CreatePet) (*model.Pet, error) {
 	createArgs := petDb.CreateArgs{
-		UserId:      data.UserId,
+		UserId:      userId,
 		Name:        data.Name,
 		About:       data.About,
 		Gender:      data.Gender,
@@ -99,35 +98,5 @@ func (s PetService) Delete(ctx context.Context, id int, userId *int) error {
 	}
 
 	err := s.repo.Delete(ctx, filters)
-	return err
-}
-
-func (s PetService) MakeLost(ctx context.Context, id int, userId *int) error {
-	filters := petDb.FilterOne{
-		Id:     id,
-		UserId: userId,
-	}
-
-	lost := true
-	updateArgs := petDb.UpdateArgs{
-		Lost: nullable.Bool{Value: &lost, IsSet: true},
-	}
-
-	_, err := s.repo.Update(ctx, filters, updateArgs)
-	return err
-}
-
-func (s PetService) UnmakeLost(ctx context.Context, id int, userId *int) error {
-	filters := petDb.FilterOne{
-		Id:     id,
-		UserId: userId,
-	}
-
-	lost := false
-	updateArgs := petDb.UpdateArgs{
-		Lost: nullable.Bool{Value: &lost, IsSet: true},
-	}
-
-	_, err := s.repo.Update(ctx, filters, updateArgs)
 	return err
 }
