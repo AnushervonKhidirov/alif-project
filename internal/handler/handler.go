@@ -4,7 +4,7 @@ import (
 	"pet/internal/handler/auth"
 	"pet/internal/handler/breed"
 	"pet/internal/handler/pet"
-	pettype "pet/internal/handler/pet_type"
+	"pet/internal/handler/pettype"
 	"pet/internal/handler/user"
 	"pet/internal/service"
 )

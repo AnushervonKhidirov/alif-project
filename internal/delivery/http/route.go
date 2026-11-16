@@ -3,7 +3,7 @@ package route
 import (
 	"pet/internal/delivery/http/auth"
 	"pet/internal/delivery/http/breed"
-	pettype "pet/internal/delivery/http/pet_type"
+	"pet/internal/delivery/http/pettype"
 	"pet/internal/delivery/http/user"
 	"pet/internal/handler"
 	"pet/internal/service"

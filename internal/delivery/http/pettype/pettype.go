@@ -1,7 +1,7 @@
 package pettype
 
 import (
-	pettype "pet/internal/handler/pet_type"
+	"pet/internal/handler/pettype"
 	"pet/internal/middleware"
 	"pet/internal/model"
 	"pet/internal/service"

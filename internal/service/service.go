@@ -10,7 +10,7 @@ import (
 	"pet/internal/repository/database"
 	"pet/internal/service/breed"
 	"pet/internal/service/pet"
-	petType "pet/internal/service/pet_type"
+	"pet/internal/service/pettype"
 	"pet/internal/service/token"
 	"pet/internal/service/user"
 )
@@ -28,7 +28,7 @@ func New(cfg *config.AppConf, r *database.Database, cache *cache.Cache) *Service
 		User:    user.NewService(r.UserRepository),
 		Token:   token.NewService(&cfg.Token, cache.Token),
 		Pet:     pet.NewService(r.PetRepository),
-		PetType: petType.NewService(r.PetTypeRepository),
+		PetType: pettype.NewService(r.PetTypeRepository),
 		Breed:   breed.NewService(r.BreedRepository),
 	}
 }

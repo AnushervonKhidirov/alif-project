@@ -6,7 +6,7 @@ import (
 	"pet/internal/model"
 	"pet/internal/repository/database/breed"
 	"pet/internal/repository/database/pet"
-	pettype "pet/internal/repository/database/pet_type"
+	"pet/internal/repository/database/pettype"
 	"pet/internal/repository/database/user"
 
 	"github.com/jackc/pgx/v5"
