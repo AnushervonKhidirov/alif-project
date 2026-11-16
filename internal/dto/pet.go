@@ -53,14 +53,13 @@ type CreatePet struct {
 	BreedId     *int          `json:"breedId"`
 }
 
-// TODO: add json tags and validation for nullable
 type UpdatePet struct {
-	Name        nullable.String
-	About       nullable.String
-	Gender      nullable.Nullable[model.Gender]
-	Birthday    nullable.Time
-	MicrochipId nullable.String
-	PetTypeId   nullable.Int
-	BreedId     nullable.Int
-	Lost        nullable.Bool
+	Name        nullable.String                 `json:"name"`
+	About       nullable.String                 `json:"about"`
+	Gender      nullable.Nullable[model.Gender] `json:"gender"`
+	Birthday    nullable.Time                   `json:"birthday"`
+	MicrochipId nullable.String                 `json:"microchipId"`
+	PetTypeId   nullable.Int                    `json:"petTypeId"`
+	BreedId     nullable.Int                    `json:"breedId"`
+	Lost        nullable.Bool                   `json:"lost"`
 }
