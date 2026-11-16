@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"pet/internal/dto"
 	"pet/internal/dto/query"
+	"pet/internal/handler/helper"
 	"pet/internal/service"
-	"pet/pkg/helper/request"
 	"pet/pkg/nullable"
 	"pet/pkg/response"
 	"strconv"
@@ -100,7 +100,7 @@ func (h Handler) UnmakeLost(c *gin.Context) {
 
 // my pet handlers
 func (h Handler) CreateMy(c *gin.Context) {
-	userId, err := request.GetUserIdFromRequest(c)
+	userId, err := helper.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusForbidden, err)
 		return
@@ -110,7 +110,7 @@ func (h Handler) CreateMy(c *gin.Context) {
 }
 
 func (h Handler) UpdateMy(c *gin.Context) {
-	userId, err := request.GetUserIdFromRequest(c)
+	userId, err := helper.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusForbidden, err)
 		return
@@ -120,7 +120,7 @@ func (h Handler) UpdateMy(c *gin.Context) {
 }
 
 func (h Handler) DeleteMy(c *gin.Context) {
-	userId, err := request.GetUserIdFromRequest(c)
+	userId, err := helper.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusForbidden, err)
 		return
@@ -130,7 +130,7 @@ func (h Handler) DeleteMy(c *gin.Context) {
 }
 
 func (h Handler) MakeLostMy(c *gin.Context) {
-	userId, err := request.GetUserIdFromRequest(c)
+	userId, err := helper.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusForbidden, err)
 		return
@@ -140,7 +140,7 @@ func (h Handler) MakeLostMy(c *gin.Context) {
 }
 
 func (h Handler) UnmakeLostMy(c *gin.Context) {
-	userId, err := request.GetUserIdFromRequest(c)
+	userId, err := helper.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusForbidden, err)
 		return

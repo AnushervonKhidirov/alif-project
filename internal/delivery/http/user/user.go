@@ -3,6 +3,7 @@ package user
 import (
 	"pet/internal/handler/user"
 	"pet/internal/middleware"
+	"pet/internal/model"
 	"pet/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -28,8 +29,8 @@ func (r *Route) Init(g *gin.RouterGroup) {
 			me.DELETE("/", middleware.Auth(r.s, nil), r.h.DeleteMe)
 		}
 
-		group.GET("/", r.h.GetMany)
-		group.GET("/:id", r.h.GetOne)
+		group.GET("/", middleware.Auth(r.s, []model.Role{model.RoleAdmin}), r.h.GetMany)
 		group.PATCH("/change-password", middleware.Auth(r.s, nil), r.h.ChangePassword)
+		group.GET("/:id", r.h.GetOne)
 	}
 }

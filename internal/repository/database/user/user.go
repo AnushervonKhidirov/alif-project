@@ -19,6 +19,7 @@ type FilterOne struct {
 type FilterMany struct {
 	FirstName *string
 	LastName  *string
+	Email     *string
 
 	Limit  int
 	Offset int
@@ -256,6 +257,11 @@ func buildManyConditions(filters FilterMany) (string, pgx.NamedArgs) {
 	if filters.LastName != nil {
 		namedArgs["lastName"] = *filters.LastName
 		cond += " AND last_name = @lastName"
+	}
+
+	if filters.Email != nil {
+		namedArgs["email"] = *filters.Email
+		cond += " AND email ILIKE @email%"
 	}
 
 	return cond, namedArgs

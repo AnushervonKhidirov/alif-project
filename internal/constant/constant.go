@@ -6,3 +6,5 @@ const (
 	TablePetType string = "pet_types"
 	TableBreed   string = "breeds"
 )
+
+const UserIdKey = "userId"

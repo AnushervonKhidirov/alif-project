@@ -20,8 +20,17 @@ func NewService(r database.UserRepo) *UserService {
 	return &UserService{repo: r}
 }
 
-func (s UserService) GetOne(ctx context.Context, filters userRepo.FilterOne) (*model.User, error) {
-	user, err := s.repo.GetOne(ctx, filters)
+func (s UserService) GetById(ctx context.Context, id int) (*model.User, error) {
+	user, err := s.repo.GetOne(ctx, userRepo.FilterOne{Id: &id})
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (s UserService) GetByEmail(ctx context.Context, email string) (*model.User, error) {
+	user, err := s.repo.GetOne(ctx, userRepo.FilterOne{Email: &email})
 	if err != nil {
 		return nil, err
 	}
@@ -33,6 +42,7 @@ func (s UserService) GetMany(ctx context.Context, filters query.UserFilterMany) 
 	dbFilters := userRepo.FilterMany{
 		FirstName: filters.FirstName,
 		LastName:  filters.LastName,
+		Email:     filters.Email,
 
 		Limit:  filters.Limit,
 		Offset: filters.Offset,

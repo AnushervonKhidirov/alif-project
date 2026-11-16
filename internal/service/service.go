@@ -8,7 +8,6 @@ import (
 	"pet/internal/model"
 	"pet/internal/repository/cache"
 	"pet/internal/repository/database"
-	userDb "pet/internal/repository/database/user"
 	"pet/internal/service/breed"
 	"pet/internal/service/pet"
 	petType "pet/internal/service/pet_type"
@@ -59,7 +58,8 @@ type TokenGenerator interface {
 
 // User
 type User interface {
-	GetOne(ctx context.Context, filters userDb.FilterOne) (*model.User, error)
+	GetById(ctx context.Context, id int) (*model.User, error)
+	GetByEmail(ctx context.Context, email string) (*model.User, error)
 	GetMany(ctx context.Context, filters query.UserFilterMany) ([]model.User, error)
 	Create(ctx context.Context, data dto.CreateUser) (*model.User, error)
 	Update(ctx context.Context, id int, data dto.UpdateUser) (*model.User, error)

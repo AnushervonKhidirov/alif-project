@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"pet/internal/dto"
-	"pet/internal/repository/database/user"
 	"pet/internal/service"
 	"pet/pkg/password"
 	"pet/pkg/response"
@@ -68,7 +67,7 @@ func (h Handler) SignIn(c *gin.Context) {
 		return
 	}
 
-	u, err := h.userService.GetOne(ctx, user.FilterOne{Email: &data.Email})
+	u, err := h.userService.GetByEmail(ctx, data.Email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			response.Fail(c, http.StatusNotFound, errors.New("wrong email or password"))

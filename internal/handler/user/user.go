@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"pet/internal/dto"
 	"pet/internal/dto/query"
-	"pet/internal/repository/database/user"
+	"pet/internal/handler/helper"
 	"pet/internal/service"
-	"pet/pkg/helper/request"
 	"pet/pkg/response"
 	"strconv"
 
@@ -33,7 +32,7 @@ func (h Handler) GetOne(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.GetOne(ctx, user.FilterOne{Id: &id})
+	user, err := h.service.GetById(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			response.Fail(c, http.StatusNotFound, errors.New("user not found"))
@@ -74,13 +73,13 @@ func (h Handler) GetMany(c *gin.Context) {
 func (h Handler) GetMe(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, err := request.GetUserIdFromRequest(c)
+	id, err := helper.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
 
-	user, err := h.service.GetOne(ctx, user.FilterOne{Id: &id})
+	user, err := h.service.GetById(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			response.Fail(c, http.StatusNotFound, errors.New("user not found"))
@@ -97,7 +96,7 @@ func (h Handler) GetMe(c *gin.Context) {
 func (h Handler) UpdateMe(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, err := request.GetUserIdFromRequest(c)
+	id, err := helper.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
@@ -121,7 +120,7 @@ func (h Handler) UpdateMe(c *gin.Context) {
 func (h Handler) DeleteMe(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, err := request.GetUserIdFromRequest(c)
+	id, err := helper.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
@@ -144,7 +143,7 @@ func (h Handler) DeleteMe(c *gin.Context) {
 func (h Handler) ChangePassword(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, err := request.GetUserIdFromRequest(c)
+	id, err := helper.GetUserIdFromRequest(c)
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return

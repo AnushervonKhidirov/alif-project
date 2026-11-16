@@ -1,14 +1,14 @@
-package request
+package helper
 
 import (
 	"errors"
-	"pet/pkg/constant"
+	"pet/internal/constant"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetUserIdFromRequest(c *gin.Context) (int, error) {
-	value, ok := c.Get(constant.UserId)
+	value, ok := c.Get(constant.UserIdKey)
 	if !ok {
 		return 0, errors.New("user id not found")
 	}

@@ -3,9 +3,9 @@ package middleware
 import (
 	"errors"
 	"net/http"
+	"pet/internal/constant"
 	"pet/internal/model"
 	"pet/internal/service"
-	"pet/pkg/constant"
 	"pet/pkg/response"
 	"slices"
 	"strings"
@@ -33,7 +33,7 @@ func Auth(tokenService service.TokenAccessVerifier, permittedRoles []model.Role)
 			return
 		}
 
-		c.Set(constant.UserId, tokenClaims.UserId)
+		c.Set(constant.UserIdKey, tokenClaims.UserId)
 
 		c.Next()
 	}

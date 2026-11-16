@@ -21,6 +21,7 @@ type PetFilterMany struct {
 type UserFilterMany struct {
 	FirstName *string `form:"firstName"`
 	LastName  *string `form:"lastName"`
+	Email     *string `form:"email"`
 
 	Pagination
 }
