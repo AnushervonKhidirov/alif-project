@@ -12,8 +12,10 @@ CREATE TABLE
 CREATE TABLE
     IF NOT EXISTS breeds (
         id SERIAL PRIMARY KEY,
-        value VARCHAR(50) UNIQUE NOT NULL,
-        pet_type_id INT REFERENCES pet_types (id) ON DELETE CASCADE
+        value VARCHAR(50) NOT NULL,
+        pet_type_id INT NOT NULL REFERENCES pet_types (id) ON DELETE CASCADE,
+        UNIQUE (pet_type_id, value),
+        UNIQUE (id, pet_type_id)
     );
 
 CREATE TABLE
@@ -39,6 +41,9 @@ CREATE TABLE
         microchip_id VARCHAR(255),
         pet_type_id INT NOT NULL REFERENCES pet_types (id),
         breed_id INT REFERENCES breeds (id),
+        CONSTRAINT fk_pet_breed_pet_type
+            FOREIGN KEY (breed_id, pet_type_id)
+            REFERENCES breeds (id, pet_type_id),
         lost bool DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -47,13 +52,13 @@ CREATE TABLE
 CREATE INDEX idx_user_email ON users (email);
 
 -- +goose Down
-DROP TABLE users;
+DROP TABLE IF EXISTS pets;
 
-DROP TABLE pets;
+DROP TABLE IF EXISTS users;
 
-DROP TABLE pet_types;
+DROP TABLE IF EXISTS breeds;
 
-DROP TABLE breeds;
+DROP TABLE IF EXISTS pet_types;
 
 DROP TYPE IF EXISTS "role";
 
