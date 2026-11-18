@@ -260,8 +260,8 @@ func buildManyConditions(filters FilterMany) (string, pgx.NamedArgs) {
 	}
 
 	if filters.Email != nil {
-		namedArgs["email"] = *filters.Email
-		cond += " AND email ILIKE @email%"
+		namedArgs["email"] = *filters.Email + "%"
+		cond += " AND email ILIKE @email"
 	}
 
 	return cond, namedArgs
