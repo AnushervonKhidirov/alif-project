@@ -9,23 +9,23 @@ import (
 type PetResponse struct {
 	Id          int            `json:"id"`
 	UserId      int            `json:"userId"`
-	User        *model.User    `json:"user,omitempty"`
+	User        *UserResponse  `json:"user,omitempty"`
 	Name        string         `json:"name"`
-	About       *string        `json:"about"`
-	Gender      *model.Gender  `json:"gender"`
-	Birthday    *time.Time     `json:"birthday"`
-	MicrochipId *string        `json:"microchipId"`
+	About       *string        `json:"about,omitempty"`
+	Gender      *model.Gender  `json:"gender,omitempty"`
+	Birthday    *time.Time     `json:"birthday,omitempty"`
+	MicrochipId *string        `json:"microchipId,omitempty"`
 	Lost        bool           `json:"lost"`
 	PetTypeId   int            `json:"petTypeId"`
 	PetType     *model.PetType `json:"petType,omitempty"`
-	BreedId     *int           `json:"breedId"`
+	BreedId     *int           `json:"breedId,omitempty"`
 	Breed       *model.Breed   `json:"breed,omitempty"`
 	CreatedAt   time.Time      `json:"createdAt"`
 	UpdatedAt   time.Time      `json:"updatedAt"`
 }
 
 func ToPetResponse(pet *model.Pet) PetResponse {
-	return PetResponse{
+	petResponse := PetResponse{
 		Id:          pet.Id,
 		UserId:      pet.UserId,
 		Name:        pet.Name,
@@ -41,6 +41,13 @@ func ToPetResponse(pet *model.Pet) PetResponse {
 		CreatedAt:   pet.CreatedAt,
 		UpdatedAt:   pet.UpdatedAt,
 	}
+
+	if pet.User != nil {
+		user := ToUserResponse(pet.User)
+		petResponse.User = &user
+	}
+
+	return petResponse
 }
 
 type CreatePet struct {
