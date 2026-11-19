@@ -5,7 +5,6 @@ import (
 	"errors"
 	"pet/internal/constant"
 	"pet/internal/model"
-	petDb "pet/internal/repository/database/pet"
 	"pet/pkg/nullable"
 	"strings"
 
@@ -55,13 +54,13 @@ func NewRepository(c *pgx.Conn) *UserRepository {
 	return &UserRepository{conn: c, tableName: constant.TableUser}
 }
 
+// TODO: complete join
 func (r UserRepository) GetOneWithPet(ctx context.Context, filters FilterOne) (*model.User, error) {
 	var user model.User
-	pets := make([]model.Pet, 0)
 
 	cond, namedArgs := buildOneConditions(filters)
 	sqlStr := `
-		SELECT ` + userFields + `
+		SELECT ` + userFields + " " + petFields + `, pt.id, pt.value, b.id, b.value, b.pet_type_id
 		FROM ` + r.tableName + " AS " + userPrefix + `
 		LEFT JOIN ` + constant.TablePet + " AS " + petPrefix + `
 			ON u.id = p.user_id
@@ -80,18 +79,11 @@ func (r UserRepository) GetOneWithPet(ctx context.Context, filters FilterOne) (*
 	defer rows.Close()
 
 	for rows.Next() {
-		var pet model.Pet
-		if err := petDb.CollectPetData(rows, &pet); err != nil {
-			return nil, err
-		}
-		pets = append(pets, pet)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-
-	user.Pets = pets
 
 	return &user, nil
 }
@@ -132,7 +124,7 @@ func (r UserRepository) GetMany(ctx context.Context, filters FilterMany) ([]mode
 		SELECT ` + userFields + `
 		FROM ` + r.tableName + " AS " + userPrefix + `
 		WHERE ` + cond + `
-		ORDER BY id ASC
+		ORDER BY u.id ASC
 	`
 
 	namedArgs["limit"] = filters.Limit
@@ -156,6 +148,7 @@ func (r UserRepository) GetMany(ctx context.Context, filters FilterMany) ([]mode
 		err := rows.Scan(
 			&u.Id,
 			&u.Email,
+			&u.PasswordHash,
 			&u.FirstName,
 			&u.LastName,
 			&u.Role,
@@ -274,7 +267,7 @@ func (r UserRepository) Delete(ctx context.Context, id int) error {
 
 func (r UserRepository) GetPassword(ctx context.Context, id int) (string, error) {
 	var password string
-	sqlStr := "SELECT password FROM " + r.tableName + "WHERE id = $1;"
+	sqlStr := "SELECT password_hash FROM " + r.tableName + " WHERE id = $1;"
 	err := r.conn.QueryRow(ctx, sqlStr, id).Scan(&password)
 	return password, err
 }
@@ -286,12 +279,12 @@ func buildOneConditions(filters FilterOne) (string, pgx.NamedArgs) {
 
 	if filters.Id != nil {
 		namedArgs["id"] = *filters.Id
-		cond += " AND " + userPrefix + "id = @id"
+		cond += " AND " + userPrefix + ".id = @id"
 	}
 
 	if filters.Email != nil {
 		namedArgs["email"] = *filters.Email
-		cond += " AND " + userPrefix + "email = @email"
+		cond += " AND " + userPrefix + ".email = @email"
 	}
 
 	return cond, namedArgs
@@ -303,17 +296,17 @@ func buildManyConditions(filters FilterMany) (string, pgx.NamedArgs) {
 
 	if filters.FirstName != nil {
 		namedArgs["firstName"] = *filters.FirstName
-		cond += " AND " + userPrefix + "first_name = @firstName"
+		cond += " AND " + userPrefix + ".first_name = @firstName"
 	}
 
 	if filters.LastName != nil {
 		namedArgs["lastName"] = *filters.LastName
-		cond += " AND " + userPrefix + "last_name = @lastName"
+		cond += " AND " + userPrefix + ".last_name = @lastName"
 	}
 
 	if filters.Email != nil {
 		namedArgs["email"] = *filters.Email + "%"
-		cond += " AND " + userPrefix + "email ILIKE @email"
+		cond += " AND " + userPrefix + ".email ILIKE @email"
 	}
 
 	return cond, namedArgs
