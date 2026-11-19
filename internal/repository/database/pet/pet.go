@@ -81,7 +81,7 @@ func (r PetRepository) GetOne(ctx context.Context, id int) (*model.Pet, error) {
 	`
 
 	row := r.conn.QueryRow(ctx, sqlStr, id)
-	if err := collectPetData(row, &pet); err != nil {
+	if err := CollectPetData(row, &pet); err != nil {
 		return nil, err
 	}
 	return &pet, nil
@@ -120,7 +120,7 @@ func (r PetRepository) GetMany(ctx context.Context, filters FilterMany) ([]model
 
 	for rows.Next() {
 		var pet model.Pet
-		if err := collectPetData(rows, &pet); err != nil {
+		if err := CollectPetData(rows, &pet); err != nil {
 			return nil, err
 		}
 		pets = append(pets, pet)
@@ -302,7 +302,7 @@ func buildManyConditions(filters FilterMany, prefix *string) (string, pgx.NamedA
 	return cond, namedArgs
 }
 
-func collectPetData(row pgx.Row, pet *model.Pet) error {
+func CollectPetData(row pgx.Row, pet *model.Pet) error {
 	var petType model.PetType
 
 	var breedId *int
