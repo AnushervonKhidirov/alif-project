@@ -41,6 +41,7 @@ func (db *Database) Connect(ctx context.Context) (*pgx.Conn, error) {
 
 type UserRepo interface {
 	GetOne(ctx context.Context, filters user.FilterOne) (*model.User, error)
+	GetOneWithPet(ctx context.Context, filters user.FilterOne) (*model.User, error)
 	GetMany(ctx context.Context, filters user.FilterMany) ([]model.User, error)
 	Create(ctx context.Context, createArgs user.CreateUserArgs) (*model.User, error)
 	Update(ctx context.Context, id int, updateArgs user.UpdateUserArgs) (*model.User, error)
