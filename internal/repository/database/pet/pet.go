@@ -12,10 +12,13 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const selectFields = "id, user_id, name, about, gender, birthday, microchip_id, pet_type_id, breed_id, lost, created_at, updated_at"
+const (
+	prefixPlaceholder = "[prefix]"
+	selectFields      = "id, user_id, name, about, gender, birthday, microchip_id, pet_type_id, breed_id, lost, created_at, updated_at"
 
-// NOTE: p => pets, pt => pet_types, b => breeds
-const selectFieldsWithJoin = "p.id, p.user_id, p.name, p.about, p.gender, p.birthday, p.microchip_id, p.pet_type_id, p.breed_id, p.lost, p.created_at, p.updated_at, pt.id, pt.value, b.id, b.value, b.pet_type_id"
+	// NOTE: p => pets, pt => pet_types, b => breeds
+	selectFieldsWithJoin = "p.id, p.user_id, p.name, p.about, p.gender, p.birthday, p.microchip_id, p.pet_type_id, p.breed_id, p.lost, p.created_at, p.updated_at, pt.id, pt.value, b.id, b.value, b.pet_type_id"
+)
 
 type FilterMany struct {
 	UserId      *int
@@ -262,36 +265,38 @@ func buildManyConditions(filters FilterMany, prefix *string) (string, pgx.NamedA
 
 	if filters.UserId != nil {
 		namedArgs["userId"] = *filters.UserId
-		cond += " AND [prefix]user_id = @userId"
+		cond += " AND " + prefixPlaceholder + "user_id = @userId"
 	}
 
 	if filters.Gender != nil {
 		namedArgs["gender"] = *filters.Gender
-		cond += " AND [prefix]gender = @gender"
+		cond += " AND " + prefixPlaceholder + "gender = @gender"
 	}
 
 	if filters.MicrochipId != nil {
 		namedArgs["microchipId"] = *filters.MicrochipId + "%"
-		cond += " AND [prefix]microchip_id ILIKE @microchipId"
+		cond += " AND " + prefixPlaceholder + "microchip_id ILIKE @microchipId"
 	}
 
 	if filters.Lost != nil {
 		namedArgs["lost"] = *filters.Lost
-		cond += " AND [prefix]lost = @lost"
+		cond += " AND " + prefixPlaceholder + "lost = @lost"
 	}
 
 	if filters.PetTypeId != nil {
 		namedArgs["petTypeId"] = *filters.PetTypeId
-		cond += " AND [prefix]pet_type_id = @petTypeId"
+		cond += " AND " + prefixPlaceholder + "pet_type_id = @petTypeId"
 	}
 
 	if filters.BreedId != nil {
 		namedArgs["breedId"] = *filters.BreedId
-		cond += " AND [prefix]breed_id = @breedId"
+		cond += " AND " + prefixPlaceholder + "breed_id = @breedId"
 	}
 
 	if prefix != nil {
-		cond = strings.ReplaceAll(cond, "[prefix]", *prefix+".")
+		cond = strings.ReplaceAll(cond, prefixPlaceholder, *prefix+".")
+	} else {
+		cond = strings.ReplaceAll(cond, prefixPlaceholder, "")
 	}
 
 	return cond, namedArgs

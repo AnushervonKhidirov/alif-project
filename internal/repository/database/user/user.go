@@ -11,6 +11,8 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+const prefixPlaceholder = "[prefix]"
+
 type FilterOne struct {
 	Id    *int
 	Email *string
@@ -50,7 +52,7 @@ func NewRepository(c *pgx.Conn) *UserRepository {
 func (r UserRepository) GetOne(ctx context.Context, filters FilterOne) (*model.User, error) {
 	var user model.User
 
-	cond, namedArgs := buildOneConditions(filters)
+	cond, namedArgs := buildOneConditions(filters, nil)
 	sqlStr := `
 		SELECT id, email, password_hash, first_name, last_name, role, created_at, updated_at
 		FROM ` + r.tableName + ` WHERE
@@ -76,7 +78,7 @@ func (r UserRepository) GetOne(ctx context.Context, filters FilterOne) (*model.U
 
 func (r UserRepository) GetMany(ctx context.Context, filters FilterMany) ([]model.User, error) {
 	users := make([]model.User, 0)
-	cond, namedArgs := buildManyConditions(filters)
+	cond, namedArgs := buildManyConditions(filters, nil)
 
 	sqlStr := `
 		SELECT id, email, first_name, last_name, role, created_at, updated_at
@@ -228,40 +230,52 @@ func (r UserRepository) GetPassword(ctx context.Context, id int) (string, error)
 }
 
 // helpers
-func buildOneConditions(filters FilterOne) (string, pgx.NamedArgs) {
+func buildOneConditions(filters FilterOne, prefix *string) (string, pgx.NamedArgs) {
 	cond := "TRUE"
 	namedArgs := make(pgx.NamedArgs)
 
 	if filters.Id != nil {
 		namedArgs["id"] = *filters.Id
-		cond += " AND id = @id"
+		cond += " AND " + prefixPlaceholder + "id = @id"
 	}
 
 	if filters.Email != nil {
 		namedArgs["email"] = *filters.Email
-		cond += " AND email = @email"
+		cond += " AND " + prefixPlaceholder + "email = @email"
+	}
+
+	if prefix != nil {
+		cond = strings.ReplaceAll(cond, prefixPlaceholder, *prefix+".")
+	} else {
+		cond = strings.ReplaceAll(cond, prefixPlaceholder, "")
 	}
 
 	return cond, namedArgs
 }
 
-func buildManyConditions(filters FilterMany) (string, pgx.NamedArgs) {
+func buildManyConditions(filters FilterMany, prefix *string) (string, pgx.NamedArgs) {
 	cond := "TRUE"
 	namedArgs := make(pgx.NamedArgs)
 
 	if filters.FirstName != nil {
 		namedArgs["firstName"] = *filters.FirstName
-		cond += " AND first_name = @firstName"
+		cond += " AND " + prefixPlaceholder + "first_name = @firstName"
 	}
 
 	if filters.LastName != nil {
 		namedArgs["lastName"] = *filters.LastName
-		cond += " AND last_name = @lastName"
+		cond += " AND " + prefixPlaceholder + "last_name = @lastName"
 	}
 
 	if filters.Email != nil {
 		namedArgs["email"] = *filters.Email + "%"
-		cond += " AND email ILIKE @email"
+		cond += " AND " + prefixPlaceholder + "email ILIKE @email"
+	}
+
+	if prefix != nil {
+		cond = strings.ReplaceAll(cond, prefixPlaceholder, *prefix+".")
+	} else {
+		cond = strings.ReplaceAll(cond, prefixPlaceholder, "")
 	}
 
 	return cond, namedArgs
