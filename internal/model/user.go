@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type Role string
 
@@ -16,6 +18,7 @@ type User struct {
 	FirstName    string
 	LastName     *string
 	Role         Role
+	Pets         []Pet
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }

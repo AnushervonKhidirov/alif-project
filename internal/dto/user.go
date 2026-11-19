@@ -7,17 +7,18 @@ import (
 )
 
 type UserResponse struct {
-	Id        int        `json:"id"`
-	Email     string     `json:"email"`
-	FirstName string     `json:"firstName"`
-	LastName  *string    `json:"lastName"`
-	Role      model.Role `json:"role"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt time.Time  `json:"updatedAt"`
+	Id        int           `json:"id"`
+	Email     string        `json:"email"`
+	FirstName string        `json:"firstName"`
+	LastName  *string       `json:"lastName,omitempty"`
+	Role      model.Role    `json:"role"`
+	Pets      []PetResponse `json:"pets,omitempty"`
+	CreatedAt time.Time     `json:"createdAt"`
+	UpdatedAt time.Time     `json:"updatedAt"`
 }
 
 func ToUserResponse(user *model.User) UserResponse {
-	return UserResponse{
+	userResponse := UserResponse{
 		Id:        user.Id,
 		Email:     user.Email,
 		FirstName: user.FirstName,
@@ -26,6 +27,18 @@ func ToUserResponse(user *model.User) UserResponse {
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}
+
+	if user.Pets != nil {
+		pets := make([]PetResponse, 0, len(user.Pets))
+
+		for _, pet := range user.Pets {
+			pets = append(pets, ToPetResponse(&pet))
+		}
+
+		userResponse.Pets = pets
+	}
+
+	return userResponse
 }
 
 type CreateUser struct {
