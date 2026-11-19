@@ -2,41 +2,38 @@ package database
 
 import (
 	"context"
-	"pet/internal/config"
 	"pet/internal/model"
 	"pet/internal/repository/database/breed"
 	"pet/internal/repository/database/pet"
 	"pet/internal/repository/database/pettype"
 	"pet/internal/repository/database/user"
+	"pet/pkg/database/postgres"
 
 	"github.com/jackc/pgx/v5"
 )
 
 type Database struct {
-	cfg               *config.Database
+	Conn              *pgx.Conn
 	UserRepository    UserRepo
 	PetRepository     PetRepo
 	PetTypeRepository PetTypeRepo
 	BreedRepository   BreedRepo
 }
 
-func New(cfg *config.Database) *Database {
-	return &Database{cfg: cfg}
-}
-
-func (db *Database) Connect(ctx context.Context) (*pgx.Conn, error) {
-	connStr := "postgres://" + db.cfg.User + ":" + db.cfg.Password + "@" + db.cfg.Host + ":" + db.cfg.Port + "/" + db.cfg.DBName
-	conn, err := pgx.Connect(ctx, connStr)
+func New(ctx context.Context, cfg *postgres.Config) (*Database, error) {
+	conn, err := postgres.Connect(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
+
+	db := Database{}
 
 	db.UserRepository = user.NewRepository(conn)
 	db.PetRepository = pet.NewRepository(conn)
 	db.PetTypeRepository = pettype.NewRepository(conn)
 	db.BreedRepository = breed.NewRepository(conn)
 
-	return conn, nil
+	return &db, nil
 }
 
 type UserRepo interface {

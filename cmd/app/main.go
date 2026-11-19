@@ -23,14 +23,12 @@ func main() {
 	cache := cache.New(&cfg.Redis)
 	defer cache.Client.Close()
 
-	// database
-	r := database.New(&cfg.Database)
-	conn, err := r.Connect(ctx)
+	// postgres
+	r, err := database.New(ctx, &cfg.Database)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	defer conn.Close(ctx)
+	defer r.Conn.Close(ctx)
 
 	s := service.New(cfg, r, cache)
 	h := handler.New(s)

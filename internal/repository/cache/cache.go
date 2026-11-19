@@ -2,8 +2,8 @@ package cache
 
 import (
 	"context"
-	"pet/internal/config"
 	"pet/internal/repository/cache/token"
+	r "pet/pkg/database/redis"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -14,12 +14,8 @@ type Cache struct {
 	Token  Token
 }
 
-func New(cfg *config.Redis) *Cache {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     cfg.Host + ":" + cfg.Port,
-		Password: cfg.Password,
-		DB:       0,
-	})
+func New(cfg *r.Config) *Cache {
+	rdb := r.Connect(cfg)
 
 	return &Cache{
 		Client: rdb,

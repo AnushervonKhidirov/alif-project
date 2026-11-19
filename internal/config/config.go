@@ -1,6 +1,8 @@
 package config
 
 import (
+	"pet/pkg/database/postgres"
+	"pet/pkg/database/redis"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -8,11 +10,11 @@ import (
 )
 
 type AppConf struct {
-	Env        string     `env:"APP_ENV" env-default:"dev"`
-	HttpServer HttpServer `env-required:"true"`
-	Database   Database   `env-required:"true"`
-	Redis      Redis      `env-required:"true"`
-	Token      Token      `env-required:"true"`
+	Env        string          `env:"APP_ENV" env-default:"dev"`
+	HttpServer HttpServer      `env-required:"true"`
+	Database   postgres.Config `env-required:"true"`
+	Redis      redis.Config    `env-required:"true"`
+	Token      Token           `env-required:"true"`
 }
 
 type HttpServer struct {
@@ -20,20 +22,6 @@ type HttpServer struct {
 	Host        string `env:"HTTP_HOST" env-default:"localhost"`
 	Timeout     string `env:"HTTP_TIMEOUT" env-default:"4s"`
 	IdleTimeout string `env:"HTTP_IDLE_TIMEOUT" env-default:"60s"`
-}
-
-type Database struct {
-	Host     string `env:"DB_HOST" env-default:"localhost"`
-	Port     string `env:"DB_PORT" env-default:"5432"`
-	User     string `env:"DB_USER" env-default:"postgres"`
-	Password string `env:"DB_PASSWORD" env-required:"true"`
-	DBName   string `env:"DB_NAME" env-required:"true"`
-}
-
-type Redis struct {
-	Host     string `env:"REDIS_HOST" env-default:"redis"`
-	Port     string `env:"REDIS_PORT" env-default:"6379"`
-	Password string `env:"REDIS_PASSWORD" env-required:"true"`
 }
 
 type Token struct {
