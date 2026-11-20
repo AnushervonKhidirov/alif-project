@@ -11,7 +11,6 @@ type UserResponse struct {
 	Email     string        `json:"email"`
 	FirstName string        `json:"firstName"`
 	LastName  *string       `json:"lastName,omitempty"`
-	Role      model.Role    `json:"role"`
 	Pets      []PetResponse `json:"pets,omitempty"`
 	CreatedAt time.Time     `json:"createdAt"`
 	UpdatedAt time.Time     `json:"updatedAt"`
@@ -23,7 +22,6 @@ func ToUserResponse(user *model.User) UserResponse {
 		Email:     user.Email,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
-		Role:      user.Role,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}
