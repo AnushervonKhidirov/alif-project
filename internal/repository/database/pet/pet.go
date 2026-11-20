@@ -18,6 +18,16 @@ const (
 
 	// NOTE: p => pets, pt => pet_types, b => breeds
 	selectFieldsWithJoin = "p.id, p.user_id, p.name, p.about, p.gender, p.birthday, p.microchip_id, p.pet_type_id, p.breed_id, p.lost, p.created_at, p.updated_at, pt.id, pt.value, b.id, b.value, b.pet_type_id"
+
+	userFields    = "u.id, u.email, u.first_name, u.last_name, u.created_at, u.updated_at"
+	petFields     = "p.id, p.user_id, p.name, p.about, p.gender, p.birthday, p.microchip_id, p.pet_type_id, p.breed_id, p.lost, p.created_at, p.updated_at"
+	petTypeFields = "pt.id, pt.value"
+	breedFields   = "b.id, b.value, b.pet_type_id"
+
+	userPrefix    = "u"
+	petPrefix     = "p"
+	petTypePrefix = "pt"
+	breedPrefix   = "b"
 )
 
 type FilterMany struct {
@@ -71,13 +81,13 @@ func NewRepository(c *pgx.Conn) *PetRepository {
 func (r PetRepository) GetOne(ctx context.Context, id int) (*model.Pet, error) {
 	var pet model.Pet
 	sqlStr := `
-		SELECT ` + selectFieldsWithJoin + `
-		FROM ` + r.tableName + ` AS p
-		LEFT JOIN ` + constant.TablePetType + ` AS pt
-			ON p.pet_type_id = pt.id
-		LEFT JOIN ` + constant.TableBreed + ` AS b
-			ON p.breed_id = b.id
-		WHERE p.id = $1;
+		SELECT ` + strings.Join([]string{petFields, petTypeFields, breedFields}, ", ") + `
+		FROM ` + r.tableName + " AS " + petPrefix + `
+		LEFT JOIN ` + constant.TablePetType + " AS " + petTypePrefix + `
+			ON` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
+		LEFT JOIN ` + constant.TableBreed + " AS " + breedPrefix + `
+			ON ` + petPrefix + ".breed_id = " + breedPrefix + `.id
+		WHERE ` + petPrefix + `.id = $1;
 	`
 
 	row := r.conn.QueryRow(ctx, sqlStr, id)
@@ -87,20 +97,40 @@ func (r PetRepository) GetOne(ctx context.Context, id int) (*model.Pet, error) {
 	return &pet, nil
 }
 
+func (r PetRepository) GetOneWithUser(ctx context.Context, id int) (*model.Pet, error) {
+	var pet model.Pet
+	sqlStr := `
+		SELECT ` + strings.Join([]string{petFields, petTypeFields, breedFields, userFields}, ", ") + `
+		FROM ` + r.tableName + " AS " + petPrefix + `
+		LEFT JOIN ` + constant.TablePetType + " AS " + petTypePrefix + `
+			ON` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
+		LEFT JOIN ` + constant.TableBreed + " AS " + breedPrefix + `
+			ON ` + petPrefix + ".breed_id = " + breedPrefix + `.id
+		LEFT JOIN ` + constant.TableUser + " AS " + userPrefix + `
+			ON ` + petPrefix + ".user_id = " + userPrefix + `.id
+		WHERE ` + petPrefix + `.id = $1;
+	`
+
+	row := r.conn.QueryRow(ctx, sqlStr, id)
+	if err := collectPetWithUserData(row, &pet); err != nil {
+		return nil, err
+	}
+	return &pet, nil
+}
+
 func (r PetRepository) GetMany(ctx context.Context, filters FilterMany) ([]model.Pet, error) {
 	pets := make([]model.Pet, 0)
-	petQueryPrefix := "p"
-	cond, namedArgs := buildManyConditions(filters, &petQueryPrefix)
+	cond, namedArgs := buildManyConditions(filters)
 
 	sqlStr := `
-		SELECT ` + selectFieldsWithJoin + `
-		FROM ` + r.tableName + ` AS p
-		LEFT JOIN ` + constant.TablePetType + ` AS pt
-			ON p.pet_type_id = pt.id
-		LEFT JOIN ` + constant.TableBreed + ` AS b
-			ON p.breed_id = b.id
+		SELECT ` + strings.Join([]string{petFields, petTypeFields, breedFields}, ", ") + `
+		FROM ` + r.tableName + " AS " + petPrefix + `
+		LEFT JOIN ` + constant.TablePetType + " AS " + petTypePrefix + `
+			ON` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
+		LEFT JOIN ` + constant.TableBreed + " AS " + breedPrefix + `
+			ON ` + petPrefix + ".breed_id = " + breedPrefix + `.id
 		WHERE` + cond + `
-		ORDER BY p.name ASC
+		ORDER BY` + petPrefix + `.name ASC
 	`
 
 	namedArgs["limit"] = filters.Limit
@@ -121,6 +151,53 @@ func (r PetRepository) GetMany(ctx context.Context, filters FilterMany) ([]model
 	for rows.Next() {
 		var pet model.Pet
 		if err := collectPetData(rows, &pet); err != nil {
+			return nil, err
+		}
+		pets = append(pets, pet)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return pets, nil
+}
+
+func (r PetRepository) GetManyWithUser(ctx context.Context, filters FilterMany) ([]model.Pet, error) {
+	pets := make([]model.Pet, 0)
+	cond, namedArgs := buildManyConditions(filters)
+
+	sqlStr := `
+		SELECT ` + strings.Join([]string{petFields, petTypeFields, breedFields, userFields}, ", ") + `
+		FROM ` + r.tableName + " AS " + petPrefix + `
+		LEFT JOIN ` + constant.TablePetType + " AS " + petTypePrefix + `
+			ON` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
+		LEFT JOIN ` + constant.TableBreed + " AS " + breedPrefix + `
+			ON ` + petPrefix + ".breed_id = " + breedPrefix + `.id
+		LEFT JOIN ` + constant.TableUser + " AS " + userPrefix + `
+			ON ` + petPrefix + ".user_id = " + userPrefix + `.id
+		WHERE` + cond + `
+		ORDER BY` + petPrefix + `.name ASC
+	`
+
+	namedArgs["limit"] = filters.Limit
+	sqlStr += " LIMIT @limit"
+
+	namedArgs["offset"] = filters.Offset
+	sqlStr += " OFFSET @offset"
+
+	sqlStr += ";"
+
+	rows, err := r.conn.Query(ctx, sqlStr, namedArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var pet model.Pet
+		if err := collectPetWithUserData(rows, &pet); err != nil {
 			return nil, err
 		}
 		pets = append(pets, pet)
@@ -259,44 +336,38 @@ func (r PetRepository) Delete(ctx context.Context, filters FilterOne) error {
 	return err
 }
 
-func buildManyConditions(filters FilterMany, prefix *string) (string, pgx.NamedArgs) {
+func buildManyConditions(filters FilterMany) (string, pgx.NamedArgs) {
 	cond := "TRUE"
 	namedArgs := make(pgx.NamedArgs)
 
 	if filters.UserId != nil {
 		namedArgs["userId"] = *filters.UserId
-		cond += " AND " + prefixPlaceholder + "user_id = @userId"
+		cond += " AND " + petPrefix + ".user_id = @userId"
 	}
 
 	if filters.Gender != nil {
 		namedArgs["gender"] = *filters.Gender
-		cond += " AND " + prefixPlaceholder + "gender = @gender"
+		cond += " AND " + petPrefix + ".gender = @gender"
 	}
 
 	if filters.MicrochipId != nil {
 		namedArgs["microchipId"] = *filters.MicrochipId + "%"
-		cond += " AND " + prefixPlaceholder + "microchip_id ILIKE @microchipId"
+		cond += " AND " + petPrefix + ".microchip_id ILIKE @microchipId"
 	}
 
 	if filters.Lost != nil {
 		namedArgs["lost"] = *filters.Lost
-		cond += " AND " + prefixPlaceholder + "lost = @lost"
+		cond += " AND " + petPrefix + ".lost = @lost"
 	}
 
 	if filters.PetTypeId != nil {
 		namedArgs["petTypeId"] = *filters.PetTypeId
-		cond += " AND " + prefixPlaceholder + "pet_type_id = @petTypeId"
+		cond += " AND " + petPrefix + ".pet_type_id = @petTypeId"
 	}
 
 	if filters.BreedId != nil {
 		namedArgs["breedId"] = *filters.BreedId
-		cond += " AND " + prefixPlaceholder + "breed_id = @breedId"
-	}
-
-	if prefix != nil {
-		cond = strings.ReplaceAll(cond, prefixPlaceholder, *prefix+".")
-	} else {
-		cond = strings.ReplaceAll(cond, prefixPlaceholder, "")
+		cond += " AND " + petPrefix + ".breed_id = @breedId"
 	}
 
 	return cond, namedArgs
@@ -335,6 +406,63 @@ func collectPetData(row pgx.Row, pet *model.Pet) error {
 		return err
 	}
 
+	pet.PetType = &petType
+
+	if breedId != nil {
+		breed := &model.Breed{
+			Id:        *breedId,
+			Value:     *breedValue,
+			PetTypeId: *breedPetTypeId,
+		}
+
+		pet.Breed = breed
+	}
+
+	return nil
+}
+
+func collectPetWithUserData(row pgx.Row, pet *model.Pet) error {
+	var petType model.PetType
+	var user model.User
+
+	var breedId *int
+	var breedValue *string
+	var breedPetTypeId *int
+
+	err := row.Scan(
+		&pet.Id,
+		&pet.UserId,
+		&pet.Name,
+		&pet.About,
+		&pet.Gender,
+		&pet.Birthday,
+		&pet.MicrochipId,
+		&pet.PetTypeId,
+		&pet.BreedId,
+		&pet.Lost,
+		&pet.CreatedAt,
+		&pet.UpdatedAt,
+
+		&petType.Id,
+		&petType.Value,
+
+		&breedId,
+		&breedValue,
+		&breedPetTypeId,
+
+		&user.Id,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	pet.User = &user
 	pet.PetType = &petType
 
 	if breedId != nil {
