@@ -13,11 +13,7 @@ import (
 )
 
 const (
-	prefixPlaceholder = "[prefix]"
-	selectFields      = "id, user_id, name, about, gender, birthday, microchip_id, pet_type_id, breed_id, lost, created_at, updated_at"
-
-	// NOTE: p => pets, pt => pet_types, b => breeds
-	selectFieldsWithJoin = "p.id, p.user_id, p.name, p.about, p.gender, p.birthday, p.microchip_id, p.pet_type_id, p.breed_id, p.lost, p.created_at, p.updated_at, pt.id, pt.value, b.id, b.value, b.pet_type_id"
+	selectFields = "id, user_id, name, about, gender, birthday, microchip_id, pet_type_id, breed_id, lost, created_at, updated_at"
 
 	userFields    = "u.id, u.email, u.first_name, u.last_name, u.created_at, u.updated_at"
 	petFields     = "p.id, p.user_id, p.name, p.about, p.gender, p.birthday, p.microchip_id, p.pet_type_id, p.breed_id, p.lost, p.created_at, p.updated_at"
@@ -84,7 +80,7 @@ func (r PetRepository) GetOne(ctx context.Context, id int) (*model.Pet, error) {
 		SELECT ` + strings.Join([]string{petFields, petTypeFields, breedFields}, ", ") + `
 		FROM ` + r.tableName + " AS " + petPrefix + `
 		LEFT JOIN ` + constant.TablePetType + " AS " + petTypePrefix + `
-			ON` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
+			ON ` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
 		LEFT JOIN ` + constant.TableBreed + " AS " + breedPrefix + `
 			ON ` + petPrefix + ".breed_id = " + breedPrefix + `.id
 		WHERE ` + petPrefix + `.id = $1;
@@ -103,7 +99,7 @@ func (r PetRepository) GetOneWithUser(ctx context.Context, id int) (*model.Pet, 
 		SELECT ` + strings.Join([]string{petFields, petTypeFields, breedFields, userFields}, ", ") + `
 		FROM ` + r.tableName + " AS " + petPrefix + `
 		LEFT JOIN ` + constant.TablePetType + " AS " + petTypePrefix + `
-			ON` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
+			ON ` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
 		LEFT JOIN ` + constant.TableBreed + " AS " + breedPrefix + `
 			ON ` + petPrefix + ".breed_id = " + breedPrefix + `.id
 		LEFT JOIN ` + constant.TableUser + " AS " + userPrefix + `
@@ -126,11 +122,11 @@ func (r PetRepository) GetMany(ctx context.Context, filters FilterMany) ([]model
 		SELECT ` + strings.Join([]string{petFields, petTypeFields, breedFields}, ", ") + `
 		FROM ` + r.tableName + " AS " + petPrefix + `
 		LEFT JOIN ` + constant.TablePetType + " AS " + petTypePrefix + `
-			ON` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
+			ON ` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
 		LEFT JOIN ` + constant.TableBreed + " AS " + breedPrefix + `
 			ON ` + petPrefix + ".breed_id = " + breedPrefix + `.id
-		WHERE` + cond + `
-		ORDER BY` + petPrefix + `.name ASC
+		WHERE ` + cond + `
+		ORDER BY ` + petPrefix + `.name ASC
 	`
 
 	namedArgs["limit"] = filters.Limit
@@ -171,13 +167,13 @@ func (r PetRepository) GetManyWithUser(ctx context.Context, filters FilterMany) 
 		SELECT ` + strings.Join([]string{petFields, petTypeFields, breedFields, userFields}, ", ") + `
 		FROM ` + r.tableName + " AS " + petPrefix + `
 		LEFT JOIN ` + constant.TablePetType + " AS " + petTypePrefix + `
-			ON` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
+			ON ` + petPrefix + ".pet_type_id = " + petTypePrefix + `.id
 		LEFT JOIN ` + constant.TableBreed + " AS " + breedPrefix + `
 			ON ` + petPrefix + ".breed_id = " + breedPrefix + `.id
 		LEFT JOIN ` + constant.TableUser + " AS " + userPrefix + `
 			ON ` + petPrefix + ".user_id = " + userPrefix + `.id
-		WHERE` + cond + `
-		ORDER BY` + petPrefix + `.name ASC
+		WHERE ` + cond + `
+		ORDER BY ` + petPrefix + `.name ASC
 	`
 
 	namedArgs["limit"] = filters.Limit

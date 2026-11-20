@@ -48,7 +48,9 @@ type UserRepo interface {
 
 type PetRepo interface {
 	GetOne(ctx context.Context, id int) (*model.Pet, error)
+	GetOneWithUser(ctx context.Context, id int) (*model.Pet, error)
 	GetMany(ctx context.Context, filters pet.FilterMany) ([]model.Pet, error)
+	GetManyWithUser(ctx context.Context, filters pet.FilterMany) ([]model.Pet, error)
 	Create(ctx context.Context, createArgs pet.CreateArgs) (*model.Pet, error)
 	Update(ctx context.Context, filters pet.FilterOne, updateArgs pet.UpdateArgs) (*model.Pet, error)
 	Delete(ctx context.Context, filters pet.FilterOne) error
