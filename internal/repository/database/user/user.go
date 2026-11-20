@@ -3,10 +3,12 @@ package user
 import (
 	"context"
 	"errors"
+	"strings"
+	"time"
+
 	"pet/internal/constant"
 	"pet/internal/model"
 	"pet/pkg/nullable"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -54,13 +56,12 @@ func NewRepository(c *pgx.Conn) *UserRepository {
 	return &UserRepository{conn: c, tableName: constant.TableUser}
 }
 
-// TODO: complete join
 func (r UserRepository) GetOneWithPet(ctx context.Context, filters FilterOne) (*model.User, error) {
 	var user model.User
 
 	cond, namedArgs := buildOneConditions(filters)
 	sqlStr := `
-		SELECT ` + userFields + " " + petFields + `, pt.id, pt.value, b.id, b.value, b.pet_type_id
+		SELECT ` + userFields + `, ` + petFields + `, pt.id, pt.value, b.id, b.value, b.pet_type_id
 		FROM ` + r.tableName + " AS " + userPrefix + `
 		LEFT JOIN ` + constant.TablePet + " AS " + petPrefix + `
 			ON u.id = p.user_id
@@ -78,11 +79,100 @@ func (r UserRepository) GetOneWithPet(ctx context.Context, filters FilterOne) (*
 
 	defer rows.Close()
 
+	user.Pets = make([]model.Pet, 0)
+	found := false
+
 	for rows.Next() {
+		var petID, petUserID, petTypeID, joinedPetTypeID *int
+		var petBreedID, breedID, breedPetTypeID *int
+		var petName *string
+		var petAbout *string
+		var petGender *model.Gender
+		var petBirthday *time.Time
+		var petMicrochipID *string
+		var petLost *bool
+		var petCreatedAt, petUpdatedAt *time.Time
+		var petTypeValue *string
+		var breedValue *string
+
+		err := rows.Scan(
+			&user.Id,
+			&user.Email,
+			&user.PasswordHash,
+			&user.FirstName,
+			&user.LastName,
+			&user.Role,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&petID,
+			&petUserID,
+			&petName,
+			&petAbout,
+			&petGender,
+			&petBirthday,
+			&petMicrochipID,
+			&petTypeID,
+			&petBreedID,
+			&petLost,
+			&petCreatedAt,
+			&petUpdatedAt,
+			&joinedPetTypeID,
+			&petTypeValue,
+			&breedID,
+			&breedValue,
+			&breedPetTypeID,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		found = true
+
+		if petID == nil {
+			continue
+		}
+
+		if petUserID == nil || petName == nil || petTypeID == nil || petLost == nil ||
+			petCreatedAt == nil || petUpdatedAt == nil || joinedPetTypeID == nil || petTypeValue == nil {
+			return nil, errors.New("incomplete pet data returned by query")
+		}
+
+		pet := model.Pet{
+			Id:          *petID,
+			UserId:      *petUserID,
+			Name:        *petName,
+			About:       petAbout,
+			Gender:      petGender,
+			Birthday:    petBirthday,
+			MicrochipId: petMicrochipID,
+			Lost:        *petLost,
+			PetTypeId:   *petTypeID,
+			BreedId:     petBreedID,
+			CreatedAt:   *petCreatedAt,
+			UpdatedAt:   *petUpdatedAt,
+		}
+		pet.PetType = &model.PetType{Id: *joinedPetTypeID, Value: *petTypeValue}
+
+		if breedID != nil {
+			if breedPetTypeID == nil || breedValue == nil {
+				return nil, errors.New("incomplete breed data returned by query")
+			}
+
+			pet.Breed = &model.Breed{
+				Id:        *breedID,
+				PetTypeId: *breedPetTypeID,
+				Value:     *breedValue,
+			}
+		}
+		user.Pets = append(user.Pets, pet)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+
+	if !found {
+		return nil, pgx.ErrNoRows
 	}
 
 	return &user, nil
