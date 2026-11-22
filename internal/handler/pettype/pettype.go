@@ -38,7 +38,7 @@ func (h Handler) GetOne(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, http.StatusOK, petType)
+	response.OK(c, http.StatusOK, dto.ToPetTypeResponse(petType))
 }
 
 func (h Handler) GetMany(c *gin.Context) {
@@ -50,7 +50,12 @@ func (h Handler) GetMany(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, http.StatusOK, petTypes)
+	petTypesResponse := make([]dto.PetTypeResponse, 0, len(petTypes))
+	for _, petType := range petTypes {
+		petTypesResponse = append(petTypesResponse, dto.ToPetTypeResponse(&petType))
+	}
+
+	response.OK(c, http.StatusOK, petTypesResponse)
 }
 
 func (h Handler) Create(c *gin.Context) {
@@ -76,7 +81,7 @@ func (h Handler) Create(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, http.StatusCreated, petType)
+	response.OK(c, http.StatusCreated, dto.ToPetTypeResponse(petType))
 }
 
 func (h Handler) Update(c *gin.Context) {
@@ -109,7 +114,7 @@ func (h Handler) Update(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, http.StatusOK, petType)
+	response.OK(c, http.StatusOK, dto.ToPetTypeResponse(petType))
 }
 
 func (h Handler) Delete(c *gin.Context) {
