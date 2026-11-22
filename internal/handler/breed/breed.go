@@ -38,7 +38,7 @@ func (h Handler) GetOne(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, http.StatusOK, breed)
+	response.OK(c, http.StatusOK, dto.ToBreedResponse(breed))
 }
 
 func (h Handler) GetMany(c *gin.Context) {
@@ -50,7 +50,12 @@ func (h Handler) GetMany(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, http.StatusOK, breeds)
+	breedsResponse := make([]dto.BreedResponse, 0, len(breeds))
+	for _, breed := range breeds {
+		breedsResponse = append(breedsResponse, dto.ToBreedResponse(&breed))
+	}
+
+	response.OK(c, http.StatusOK, breedsResponse)
 }
 
 func (h Handler) Create(c *gin.Context) {
@@ -66,8 +71,12 @@ func (h Handler) Create(c *gin.Context) {
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			if pgErr.Code == pgerrcode.UniqueViolation {
+			switch pgErr.Code {
+			case pgerrcode.UniqueViolation:
 				response.Fail(c, http.StatusConflict, errors.New("breed already exists"))
+				return
+			case pgerrcode.ForeignKeyViolation:
+				response.Fail(c, http.StatusConflict, errors.New("pet type with this id not found"))
 				return
 			}
 		}
@@ -76,7 +85,7 @@ func (h Handler) Create(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, http.StatusCreated, breed)
+	response.OK(c, http.StatusCreated, dto.ToBreedResponse(breed))
 }
 
 func (h Handler) Update(c *gin.Context) {
@@ -99,8 +108,12 @@ func (h Handler) Update(c *gin.Context) {
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			if pgErr.Code == pgerrcode.UniqueViolation {
+			switch pgErr.Code {
+			case pgerrcode.UniqueViolation:
 				response.Fail(c, http.StatusConflict, errors.New("breed already exists"))
+				return
+			case pgerrcode.ForeignKeyViolation:
+				response.Fail(c, http.StatusConflict, errors.New("pet type with this id not found"))
 				return
 			}
 		}
@@ -109,7 +122,7 @@ func (h Handler) Update(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, http.StatusOK, breed)
+	response.OK(c, http.StatusOK, dto.ToBreedResponse(breed))
 }
 
 func (h Handler) Delete(c *gin.Context) {
