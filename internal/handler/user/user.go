@@ -32,7 +32,7 @@ func (h Handler) GetOne(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.GetById(ctx, id)
+	user, err := h.service.GetById(ctx, id, true)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			response.Fail(c, http.StatusNotFound, errors.New("user not found"))
@@ -79,7 +79,7 @@ func (h Handler) GetMe(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.GetById(ctx, id)
+	user, err := h.service.GetById(ctx, id, true)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			response.Fail(c, http.StatusNotFound, errors.New("user not found"))
@@ -114,7 +114,7 @@ func (h Handler) UpdateMe(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, http.StatusOK, user)
+	response.OK(c, http.StatusOK, dto.ToUserResponse(user))
 }
 
 func (h Handler) DeleteMe(c *gin.Context) {
