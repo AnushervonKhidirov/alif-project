@@ -32,7 +32,7 @@ func (h Handler) GetOne(c *gin.Context) {
 		return
 	}
 
-	pet, err := h.service.GetOne(ctx, id)
+	pet, err := h.service.GetOne(ctx, id, true)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			response.Fail(c, http.StatusNotFound, errors.New("pet not found"))
@@ -57,7 +57,7 @@ func (h Handler) GetMany(c *gin.Context) {
 		return
 	}
 
-	pets, err := h.service.GetMany(ctx, filterQuery)
+	pets, err := h.service.GetMany(ctx, filterQuery, true)
 	if err != nil {
 		response.Fail(c, http.StatusInternalServerError, nil)
 		return
