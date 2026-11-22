@@ -37,7 +37,7 @@ func (r *Route) Init(g *gin.RouterGroup) {
 		group.GET("/:id", r.h.GetOne)
 
 		// only for admin
-		group.POST("/", middleware.Auth(r.s, []model.Role{model.RoleAdmin}), r.h.Create)
+		group.POST("/:userId", middleware.Auth(r.s, []model.Role{model.RoleAdmin}), r.h.Create)
 		group.POST("/lost/make/:id", middleware.Auth(r.s, []model.Role{model.RoleAdmin}), r.h.MakeLost)
 		group.POST("/lost/unmake/:id", middleware.Auth(r.s, []model.Role{model.RoleAdmin}), r.h.UnmakeLost)
 
