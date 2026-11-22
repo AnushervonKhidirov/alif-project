@@ -20,8 +20,14 @@ func NewService(r database.UserRepo) *UserService {
 	return &UserService{repo: r}
 }
 
-func (s UserService) GetById(ctx context.Context, id int) (*model.User, error) {
-	user, err := s.repo.GetOne(ctx, userRepo.FilterOne{Id: &id})
+func (s UserService) GetById(ctx context.Context, id int, withPet bool) (*model.User, error) {
+	getOne := s.repo.GetOne
+
+	if withPet {
+		getOne = s.repo.GetOneWithPet
+	}
+
+	user, err := getOne(ctx, userRepo.FilterOne{Id: &id})
 	if err != nil {
 		return nil, err
 	}

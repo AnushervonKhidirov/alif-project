@@ -58,7 +58,7 @@ type TokenGenerator interface {
 
 // User
 type User interface {
-	GetById(ctx context.Context, id int) (*model.User, error)
+	GetById(ctx context.Context, id int, withPet bool) (*model.User, error)
 	GetByEmail(ctx context.Context, email string) (*model.User, error)
 	GetMany(ctx context.Context, filters query.UserFilterMany) ([]model.User, error)
 	Create(ctx context.Context, data dto.CreateUser) (*model.User, error)
