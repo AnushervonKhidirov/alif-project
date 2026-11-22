@@ -17,8 +17,14 @@ func NewService(r database.PetRepo) *PetService {
 	return &PetService{repo: r}
 }
 
-func (s PetService) GetOne(ctx context.Context, id int) (*model.Pet, error) {
-	pet, err := s.repo.GetOne(ctx, id)
+func (s PetService) GetOne(ctx context.Context, id int, withUser bool) (*model.Pet, error) {
+	getOne := s.repo.GetOne
+
+	if withUser {
+		getOne = s.repo.GetOneWithUser
+	}
+
+	pet, err := getOne(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +32,7 @@ func (s PetService) GetOne(ctx context.Context, id int) (*model.Pet, error) {
 	return pet, nil
 }
 
-func (s PetService) GetMany(ctx context.Context, filters query.PetFilterMany) ([]model.Pet, error) {
+func (s PetService) GetMany(ctx context.Context, filters query.PetFilterMany, withUser bool) ([]model.Pet, error) {
 	dbFilters := petDb.FilterMany{
 		UserId:      filters.UserId,
 		Gender:      filters.Gender,
@@ -39,7 +45,13 @@ func (s PetService) GetMany(ctx context.Context, filters query.PetFilterMany) ([
 		Offset: filters.Offset,
 	}
 
-	pets, err := s.repo.GetMany(ctx, dbFilters)
+	getMany := s.repo.GetMany
+
+	if withUser {
+		getMany = s.repo.GetManyWithUser
+	}
+
+	pets, err := getMany(ctx, dbFilters)
 	if err != nil {
 		return nil, err
 	}

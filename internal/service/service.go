@@ -69,8 +69,8 @@ type User interface {
 
 // Pet
 type Pet interface {
-	GetOne(ctx context.Context, id int) (*model.Pet, error)
-	GetMany(ctx context.Context, filters query.PetFilterMany) ([]model.Pet, error)
+	GetOne(ctx context.Context, id int, withUser bool) (*model.Pet, error)
+	GetMany(ctx context.Context, filters query.PetFilterMany, withUser bool) ([]model.Pet, error)
 	Create(ctx context.Context, userId int, data dto.CreatePet) (*model.Pet, error)
 	Update(ctx context.Context, id int, userId *int, data dto.UpdatePet) (*model.Pet, error)
 	Delete(ctx context.Context, id int, userId *int) error
