@@ -266,22 +266,27 @@ func (r PetRepository) Update(ctx context.Context, filters FilterOne, updateArgs
 			return nil, errors.New("name should not be null")
 		}
 
+		setFields = append(setFields, "name = @name")
 		namedArgs["name"] = updateArgs.Name.Value
 	}
 
 	if updateArgs.About.IsSet {
+		setFields = append(setFields, "about = @about")
 		namedArgs["about"] = updateArgs.About.Value
 	}
 
 	if updateArgs.Gender.IsSet {
+		setFields = append(setFields, "gender = @gender")
 		namedArgs["gender"] = updateArgs.Gender.Value
 	}
 
 	if updateArgs.Birthday.IsSet {
+		setFields = append(setFields, "birthday = @birthday")
 		namedArgs["birthday"] = updateArgs.Birthday.Value
 	}
 
 	if updateArgs.MicrochipId.IsSet {
+		setFields = append(setFields, "microchip_id = @microchipId")
 		namedArgs["microchipId"] = updateArgs.MicrochipId.Value
 	}
 
@@ -290,10 +295,12 @@ func (r PetRepository) Update(ctx context.Context, filters FilterOne, updateArgs
 			return nil, errors.New("pet type id should not be null")
 		}
 
+		setFields = append(setFields, "pet_type_id = @petTypeId")
 		namedArgs["petTypeId"] = updateArgs.PetTypeId.Value
 	}
 
 	if updateArgs.BreedId.IsSet {
+		setFields = append(setFields, "breed_id = @breedId")
 		namedArgs["breedId"] = updateArgs.BreedId.Value
 	}
 
