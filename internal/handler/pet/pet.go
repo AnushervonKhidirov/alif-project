@@ -251,7 +251,7 @@ func (h Handler) lostPet(c *gin.Context, userId *int, lost bool) {
 		Lost: nullable.Bool{Value: &lost, IsSet: true},
 	}
 
-	if _, err = h.service.Update(ctx, id, nil, data); err != nil {
+	if _, err = h.service.Update(ctx, id, userId, data); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			response.Fail(c, http.StatusNotFound, errors.New("pet not found"))
 			return
