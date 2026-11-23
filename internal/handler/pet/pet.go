@@ -10,6 +10,7 @@ import (
 	"pet/pkg/nullable"
 	"pet/pkg/response"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgerrcode"
@@ -168,6 +169,17 @@ func (h Handler) createPet(c *gin.Context, userId int) {
 			case pgerrcode.InvalidTextRepresentation:
 				response.Fail(c, http.StatusBadRequest, errors.New(pgErr.Message))
 				return
+			case pgerrcode.ForeignKeyViolation:
+				switch {
+				case strings.Contains(pgErr.Detail, "breed_id"):
+					response.Fail(c, http.StatusNotFound, errors.New("breed not found"))
+				case strings.Contains(pgErr.Detail, "pet_type_id"):
+					response.Fail(c, http.StatusNotFound, errors.New("pet type not found"))
+				default:
+					response.Fail(c, http.StatusBadRequest, nil)
+				}
+
+				return
 			}
 		}
 
@@ -205,6 +217,17 @@ func (h Handler) updatePet(c *gin.Context, userId *int) {
 			switch pgErr.Code {
 			case pgerrcode.InvalidTextRepresentation:
 				response.Fail(c, http.StatusBadRequest, errors.New(pgErr.Message))
+				return
+			case pgerrcode.ForeignKeyViolation:
+				switch {
+				case strings.Contains(pgErr.Detail, "breed_id"):
+					response.Fail(c, http.StatusNotFound, errors.New("breed not found"))
+				case strings.Contains(pgErr.Detail, "pet_type_id"):
+					response.Fail(c, http.StatusNotFound, errors.New("pet type not found"))
+				default:
+					response.Fail(c, http.StatusBadRequest, nil)
+				}
+
 				return
 			}
 		}
