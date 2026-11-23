@@ -12,7 +12,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type Handler struct {
@@ -160,6 +162,15 @@ func (h Handler) createPet(c *gin.Context, userId int) {
 
 	pet, err := h.service.Create(ctx, userId, data)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch pgErr.Code {
+			case pgerrcode.InvalidTextRepresentation:
+				response.Fail(c, http.StatusBadRequest, errors.New(pgErr.Message))
+				return
+			}
+		}
+
 		response.Fail(c, http.StatusInternalServerError, nil)
 		return
 	}
@@ -187,6 +198,15 @@ func (h Handler) updatePet(c *gin.Context, userId *int) {
 		if errors.Is(err, pgx.ErrNoRows) {
 			response.Fail(c, http.StatusNotFound, errors.New("pet not found"))
 			return
+		}
+
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch pgErr.Code {
+			case pgerrcode.InvalidTextRepresentation:
+				response.Fail(c, http.StatusBadRequest, errors.New(pgErr.Message))
+				return
+			}
 		}
 
 		response.Fail(c, http.StatusInternalServerError, nil)
