@@ -93,6 +93,7 @@ func (s PetService) Update(ctx context.Context, id int, userId *int, data dto.Up
 		MicrochipId: data.MicrochipId,
 		PetTypeId:   data.PetTypeId,
 		BreedId:     data.BreedId,
+		Lost:        data.Lost,
 	}
 
 	pet, err := s.repo.Update(ctx, filters, updateArgs)

@@ -304,6 +304,19 @@ func (r PetRepository) Update(ctx context.Context, filters FilterOne, updateArgs
 		namedArgs["breedId"] = updateArgs.BreedId.Value
 	}
 
+	if updateArgs.Lost.IsSet {
+		if updateArgs.Lost.Value == nil {
+			return nil, errors.New("lost should not be null")
+		}
+
+		setFields = append(setFields, "lost = @lost")
+		namedArgs["lost"] = updateArgs.Lost.Value
+	}
+
+	if len(setFields) == 0 {
+		return nil, errors.New("no fields to update")
+	}
+
 	setFields = append(setFields, "updated_at = CURRENT_TIMESTAMP")
 
 	sqlStr := `
