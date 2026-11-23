@@ -209,12 +209,20 @@ func (r PetRepository) GetManyWithUser(ctx context.Context, filters FilterMany) 
 func (r PetRepository) Create(ctx context.Context, createArgs CreateArgs) (*model.Pet, error) {
 	var pet model.Pet
 
-	namedArgs := make(pgx.NamedArgs)
-	namedArgs["user_id"] = createArgs.UserId
+	namedArgs := pgx.NamedArgs{
+		"user_id":     createArgs.UserId,
+		"name":        createArgs.Name,
+		"about":       createArgs.About,
+		"gender":      createArgs.Gender,
+		"birthday":    createArgs.Birthday,
+		"microchipId": createArgs.MicrochipId,
+		"petTypeId":   createArgs.PetTypeId,
+		"breedId":     createArgs.BreedId,
+	}
 
 	sqlStr := `
 		INSERT INTO ` + r.tableName + ` (user_id, name, about, gender, birthday, microchip_id, pet_type_id, breed_id)
-		VALUES ()
+		VALUES (@user_id, @name, @about, @gender, @birthday, @microchipId, @petTypeId, @breedId)
 		RETURNING ` + selectFields + `;
 	`
 
@@ -294,7 +302,7 @@ func (r PetRepository) Update(ctx context.Context, filters FilterOne, updateArgs
 	sqlStr := `
 		UPDATE ` + r.tableName + ` SET ` + strings.Join(setFields, ", ") + `
 		WHERE ` + cond + `
-		RETURNING` + selectFields + `;
+		RETURNING ` + selectFields + `;
 	`
 	err := r.conn.QueryRow(ctx, sqlStr, namedArgs).Scan(
 		&pet.Id,
