@@ -317,11 +317,7 @@ func (r UserRepository) Update(ctx context.Context, id int, updateArgs UpdateUse
 		namedArgs["passwordHash"] = updateArgs.PasswordHash.Value
 	}
 
-	_, isFirstOk := namedArgs["firstName"]
-	_, isLastOk := namedArgs["lastName"]
-	_, isPasswordOk := namedArgs["passwordHash"]
-
-	if !isFirstOk && !isLastOk && !isPasswordOk {
+	if len(setFields) == 0 {
 		return nil, errors.New("no fields to update")
 	}
 
