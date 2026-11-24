@@ -35,6 +35,11 @@ func (h Handler) SignUp(c *gin.Context) {
 		return
 	}
 
+	if err := data.Validate(); err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
 	u, err := h.userService.Create(ctx, data)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -101,6 +106,11 @@ func (h Handler) SignOut(c *gin.Context) {
 		return
 	}
 
+	if err := data.Validate(); err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
 	_, err := h.tokenService.VerifyRefresh(ctx, data.RefreshToken)
 	if err != nil {
 		response.Fail(c, http.StatusUnauthorized, err)
@@ -115,6 +125,11 @@ func (h Handler) RefreshToken(c *gin.Context) {
 
 	var data dto.RefreshTokenRequest
 	if err := c.ShouldBindJSON(&data); err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := data.Validate(); err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}

@@ -49,6 +49,40 @@ func (h Handler) GetOne(c *gin.Context) {
 	response.OK(c, http.StatusOK, dto.ToPetResponse(pet))
 }
 
+func (h Handler) GetMy(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	userId, err := helper.GetUserIdFromRequest(c)
+	if err != nil {
+		response.Fail(c, http.StatusForbidden, err)
+		return
+	}
+
+	var filterQuery query.PetFilterMany
+
+	err = c.ShouldBindQuery(&filterQuery)
+	if err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
+	filterQuery.UserId = &userId
+
+	pets, err := h.service.GetMany(ctx, filterQuery, false)
+	if err != nil {
+		response.Fail(c, http.StatusInternalServerError, nil)
+		return
+	}
+
+	petsResponse := make([]dto.PetResponse, 0, len(pets))
+
+	for _, pet := range pets {
+		petsResponse = append(petsResponse, dto.ToPetResponse(&pet))
+	}
+
+	response.OK(c, http.StatusOK, petsResponse)
+}
+
 func (h Handler) GetMany(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -161,6 +195,11 @@ func (h Handler) createPet(c *gin.Context, userId int) {
 		return
 	}
 
+	if err := data.Validate(); err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
 	pet, err := h.service.Create(ctx, userId, data)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -201,6 +240,11 @@ func (h Handler) updatePet(c *gin.Context, userId *int) {
 
 	var data dto.UpdatePet
 	if err := c.ShouldBindJSON(&data); err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := data.Validate(); err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}

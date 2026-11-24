@@ -8,3 +8,5 @@ const (
 )
 
 const UserIdKey = "userId"
+
+const DateLayout = "02-01-2006"

@@ -25,6 +25,7 @@ func (r *Route) Init(g *gin.RouterGroup) {
 		{
 			my := group.Group("/my")
 
+			my.GET("/", middleware.Auth(r.s, nil), r.h.GetMy)
 			my.POST("/", middleware.Auth(r.s, nil), r.h.CreateMy)
 			my.POST("/lost/make/:id", middleware.Auth(r.s, nil), r.h.MakeLostMy)
 			my.POST("/lost/unmake/:id", middleware.Auth(r.s, nil), r.h.UnmakeLostMy)

@@ -3,7 +3,7 @@ package query
 import "pet/internal/model"
 
 type Pagination struct {
-	Limit  int `form:"take,default=20" binding:"required"`
+	Limit  int `form:"take,default=20"`
 	Offset int `form:"skip,default=0"`
 }
 

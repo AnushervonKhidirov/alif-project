@@ -1,8 +1,10 @@
 package dto
 
 import (
+	"errors"
 	"pet/internal/model"
 	"pet/pkg/nullable"
+	"pet/pkg/validator"
 	"time"
 )
 
@@ -40,10 +42,44 @@ func ToUserResponse(user *model.User) UserResponse {
 }
 
 type CreateUser struct {
-	Email     string          `json:"email" binding:"required,email"`
-	Password  string          `json:"password" binding:"required,min=6"`
-	FirstName string          `json:"firstName" binding:"required"`
-	LastName  nullable.String `json:"lastName"`
+	Email     string  `json:"email"`
+	Password  string  `json:"password"`
+	FirstName string  `json:"firstName"`
+	LastName  *string `json:"lastName"`
+}
+
+func (dto CreateUser) Validate() error {
+	if isEmail := validator.IsEmail(dto.Email); !isEmail {
+		return errors.New("'email' should be an email")
+	}
+
+	if isString := validator.IsString(dto.Password); !isString {
+		return errors.New("'password' should be a string")
+	}
+
+	if minSize := validator.MinLength(dto.Password, 6); !minSize {
+		return errors.New("'password' should be greater or equal to 6 symbols")
+	}
+
+	if isString := validator.IsString(dto.FirstName); !isString {
+		return errors.New("'firstName' should be a string")
+	}
+
+	if isBlank := validator.IsBlankString(dto.FirstName); !isBlank {
+		return errors.New("'firstName' should not be blank")
+	}
+
+	if dto.LastName != nil {
+		if isString := validator.IsString(*dto.LastName); !isString {
+			return errors.New("'lastName' should be a string")
+		}
+
+		if isBlank := validator.IsBlankString(*dto.LastName); !isBlank {
+			return errors.New("'lastName' should not be blank")
+		}
+	}
+
+	return nil
 }
 
 type UpdateUser struct {
@@ -51,7 +87,51 @@ type UpdateUser struct {
 	LastName  nullable.String `json:"lastName"`
 }
 
+func (dto UpdateUser) Validate() error {
+	if dto.FirstName.Value != nil {
+		if isString := validator.IsString(*dto.FirstName.Value); !isString {
+			return errors.New("'firstName' should be a string")
+		}
+
+		if isBlank := validator.IsBlankString(*dto.FirstName.Value); !isBlank {
+			return errors.New("'firstName' should not be blank")
+		}
+	}
+
+	if dto.LastName.Value != nil {
+		if isString := validator.IsString(*dto.LastName.Value); !isString {
+			return errors.New("'lastName' should be a string")
+		}
+
+		if isBlank := validator.IsBlankString(*dto.LastName.Value); !isBlank {
+			return errors.New("'lastName' should not be blank")
+		}
+	}
+
+	return nil
+}
+
 type ChangePassword struct {
-	OldPassword string `json:"oldPassword" binding:"required,min=6"`
-	NewPassword string `json:"NewPassword" binding:"required,min=6"`
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}
+
+func (dto ChangePassword) Validate() error {
+	if isString := validator.IsString(dto.OldPassword); !isString {
+		return errors.New("'oldPassword' should be a string")
+	}
+
+	if minSize := validator.MinLength(dto.OldPassword, 6); !minSize {
+		return errors.New("'oldPassword' should be greater or equal to 6 symbols")
+	}
+
+	if isString := validator.IsString(dto.NewPassword); !isString {
+		return errors.New("'newPassword' should be a string")
+	}
+
+	if minSize := validator.MinLength(dto.NewPassword, 6); !minSize {
+		return errors.New("'newPassword' should be greater or equal to 6 symbols")
+	}
+
+	return nil
 }

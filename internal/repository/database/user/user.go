@@ -38,7 +38,7 @@ type CreateUserArgs struct {
 	Email        string
 	PasswordHash string
 	FirstName    string
-	LastName     nullable.String
+	LastName     *string
 }
 
 type UpdateUserArgs struct {
@@ -267,7 +267,7 @@ func (r UserRepository) Create(ctx context.Context, createArgs CreateUserArgs) (
 	namedArgs["email"] = createArgs.Email
 	namedArgs["passwordHash"] = createArgs.PasswordHash
 	namedArgs["firstName"] = createArgs.FirstName
-	namedArgs["lastName"] = createArgs.LastName.Value
+	namedArgs["lastName"] = createArgs.LastName
 
 	sqlStr := `
 		INSERT INTO ` + r.tableName + ` (email, password_hash, first_name, last_name)

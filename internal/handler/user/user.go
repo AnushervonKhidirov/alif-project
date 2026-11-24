@@ -108,6 +108,11 @@ func (h Handler) UpdateMe(c *gin.Context) {
 		return
 	}
 
+	if err := data.Validate(); err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
 	user, err := h.service.Update(ctx, id, data)
 	if err != nil {
 		response.Fail(c, http.StatusInternalServerError, nil)
@@ -151,6 +156,11 @@ func (h Handler) ChangePassword(c *gin.Context) {
 
 	var data dto.ChangePassword
 	if err := c.ShouldBindJSON(&data); err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := data.Validate(); err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}

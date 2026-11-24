@@ -67,6 +67,11 @@ func (h Handler) Create(c *gin.Context) {
 		return
 	}
 
+	if err := data.Validate(); err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
 	petType, err := h.service.Create(ctx, data)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -96,6 +101,11 @@ func (h Handler) Update(c *gin.Context) {
 
 	var data dto.PetType
 	if err := c.ShouldBindJSON(&data); err != nil {
+		response.Fail(c, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := data.Validate(); err != nil {
 		response.Fail(c, http.StatusBadRequest, err)
 		return
 	}
