@@ -1,6 +1,7 @@
 package response
 
 import (
+	"log"
 	"net/http"
 	"strings"
 
@@ -41,6 +42,8 @@ func Fail(c *gin.Context, statusCode int, err error) {
 
 	if value, ok := errorNames[statusCode]; ok {
 		errName = value
+	} else {
+		log.Fatal(err.Error())
 	}
 
 	if err != nil {
