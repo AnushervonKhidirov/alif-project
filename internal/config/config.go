@@ -10,7 +10,6 @@ import (
 )
 
 type AppConf struct {
-	Env        string          `env:"APP_ENV" env-default:"dev"`
 	HttpServer HttpServer      `env-required:"true"`
 	Database   postgres.Config `env-required:"true"`
 	Redis      redis.Config    `env-required:"true"`
@@ -18,10 +17,8 @@ type AppConf struct {
 }
 
 type HttpServer struct {
-	Port        string `env:"HTTP_PORT" env-default:"8080"`
-	Host        string `env:"HTTP_HOST" env-default:"localhost"`
-	Timeout     string `env:"HTTP_TIMEOUT" env-default:"4s"`
-	IdleTimeout string `env:"HTTP_IDLE_TIMEOUT" env-default:"60s"`
+	Port string `env:"HTTP_PORT" env-default:"8080"`
+	Host string `env:"HTTP_HOST" env-default:"localhost"`
 }
 
 type Token struct {
